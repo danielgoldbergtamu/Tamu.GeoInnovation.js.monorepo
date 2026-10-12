@@ -1,7 +1,7 @@
 # For the components the scan clears under <prefix>, list any that write a field outside ngOnInit/constructor.
 import os, re, sys
+src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'onpush-scan.py'), encoding='utf-8').read()
 os.chdir(sys.argv[1])
-src = open(r'C:\TAMU\logs\onpush-scan.py', encoding='utf-8').read()
 sys.argv = ['x', sys.argv[1], sys.argv[2]]
 g = {}
 exec(src.split("for k, v in groups.items():")[0], g)
