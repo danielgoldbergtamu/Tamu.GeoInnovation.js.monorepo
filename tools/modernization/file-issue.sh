@@ -5,7 +5,7 @@ set -euo pipefail
 R=TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo
 title=$1; body=$2; label=$3; type=$4; prio=$5; projects=$6; parent=${7:-}
 case $type in Task) T=IT_kwDOAC0_c84ABH0H;; Bug) T=IT_kwDOAC0_c84ABH0J;; Feature) T=IT_kwDOAC0_c84ABH0M;; esac
-case $prio in High) P=IFSSO_kgDOAAwdRw;; Medium) P=IFSSO_kgDOAAwdSA;; Low) P=IFSSO_kgDOAAwdSQ;; esac
+case $prio in Urgent) P=IFSSO_kgDOAAwdRg;; High) P=IFSSO_kgDOAAwdRw;; Medium) P=IFSSO_kgDOAAwdSA;; Low) P=IFSSO_kgDOAAwdSQ;; esac
 url=$(gh issue create --repo $R --title "$title" --body-file "$body" --label "$label" --assignee danielgoldbergtamu)
 n=${url##*/}
 id=$(gh issue view "$n" --repo $R --json id --jq .id)
