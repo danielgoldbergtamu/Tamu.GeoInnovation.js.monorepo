@@ -1,10 +1,12 @@
 # Unreleased
 
-Since the 12 October release: GIS Day changes only, waiting for GIS Day's own deploy (see Summary).
+Since the second 12 October release: every published campus basemap in the gallery on dev, and GIS Day
+changes waiting for GIS Day's own deploy.
 
-**The last release is [12 October 2026](2026-10-12.md)**, built from `79cadfccc` (build 20261012.5). The
-full suite cleared it on dev: 446 passed, none failed. The release before it is
-[8 October 2026](2026-10-08.md).
+**The last release is [12 October 2026, second release](2026-10-12-2.md)**, built from `f29b7e47d` (build
+20261012.21). The quick tier cleared it on dev: 245 passed, none failed. The release before it is
+[12 October 2026](2026-10-12.md), which cleared dev and was never promoted; production went from
+[8 October 2026](2026-10-08.md) to this one.
 
 This file collects what merges from here until the next release. **A pull request with a user-visible
 result adds its own entry below, in that pull request**, with its before/after screenshots linked from
@@ -14,6 +16,82 @@ result adds its own entry below, in that pull request**, with its before/after s
 ---
 
 ## Summary
+
+### The basemap panel's pictures are there when it opens
+
+Each campus basemap's picture in the basemap panel was fetched from its GIS service on every map
+load, 133 KB at a time and never kept, so on a slower connection the rows filled in one after another.
+The application now ships one small picture for the campus basemaps and uses it for all of them, and
+serves Aerial Imagery's from the same place ([#1730](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1730)). Nothing looks different once it
+has loaded; it is there sooner.
+
+### Dev can show what production will (dev only)
+
+Dev differs from production on purpose: it turns on features that are not released, and it draws from
+the development GIS server. So dev could not show what a visitor to production would get, and on
+12 October a new basemap went to production without having been seen drawn on dev
+([#1722](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1722)).
+
+On a development host, every page now has a small **View as production** control at the bottom. One
+click reloads the page as production shows it: development-only features off, and production's GIS
+services. A yellow **Viewing as production** banner then stays on every page of that browser tab, with
+**Back to dev**. The All Maps page has a section for it as well, and any address works with
+`?as=production` added, so a link can be sent to someone.
+
+It lasts for the tab, because moving between maps drops what is in the address. It can only turn
+development behaviour off: on production the control is not there and the parameter does nothing.
+
+| On dev | Switched on |
+| --- | --- |
+| ![The main map on dev with a small View as production control at the bottom](../screenshots/dev-as-production/before-dev.png) | ![The same map with a yellow Viewing as production banner, the development tabs gone and one Aggieland basemap](../screenshots/dev-as-production/after-as-production.png) |
+
+![The All Maps page on dev with a View as Production section](../screenshots/dev-as-production/all-maps-section.png)
+
+### A legend shows the symbol its map draws
+
+On some visits a legend showed one symbol while the map drew another. On the Football Transportation map
+for Micromobility, Entry, the legend's Entry Routes was a wide purple bar beside a map drawing thin
+purple lines with arrowheads ([#1721](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1721)).
+
+A layer loads with the symbol its service publishes and is then given the one its portal item
+publishes, which is the one it was authored with ([#1497](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1497), on production since
+6 October). The legend kept whichever it drew first. Usually the portal's answer was in before the
+legend was drawn; when it was not, the legend was left showing the service's flattened version. It
+was not one map or one layer: every hosted layer on every map could do it, and how wrong it looked
+depended on how far the two symbols differ. Entry Routes is the worst case, because its service turns a
+1.95-point line with a 15-point arrowhead into a 15-point line.
+
+The legend now redraws a symbol whenever its layer's symbol is replaced.
+
+| Before | After |
+| --- | --- |
+| ![The legend with Entry Routes as a wide purple bar, a larger pin and a grey No Ride Zone](../screenshots/legend-line-symbols/before-production-symbology-arrives-late.png) | ![The legend with Entry Routes as a thin purple arrow, as the map draws it](../screenshots/legend-line-symbols/after-local-symbology-arrives-late.png) |
+
+Both were taken with the portal's answer held back for 20 seconds, so the legend was drawn first: the
+left on production, the right on a local server with the fix. All five entries differ, not only the
+routes.
+
+### Every published campus basemap, in the gallery on dev (dev only)
+
+Dev opens on the vector tile campus basemap, which production does not have yet
+([#1229](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1229)), and its gallery offered that one alone under the name Aggieland. So the
+raster basemap production shows could not be seen on dev at all, and on 12 October a new raster cache
+went to production without anyone having seen it drawn there ([#1695](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1695)).
+
+On dev, the basemap gallery now lists the raster campus basemaps as well, each under its date:
+October 2026, which is what production shows, and the June and May 2026 versions that are still
+published, so they can be compared. The vector one is named the same way, "Aggieland vector, September
+2026" ([#1582](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1582)). Choosing one moves the map to it and back
+without losing the place. Production's gallery is unchanged: one Aggieland basemap.
+
+A basemap chosen there is remembered, and the event and parking maps restore it. They knew only the
+original Aggieland basemap by name, so a dated one left them with no basemap at all: a white map at a
+meaningless zoom. That was found on a local server before any build carried it, and fixed
+([#1726](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1726)).
+
+| Before, on dev | After, on dev | After, as production shows it |
+| --- | --- | --- |
+| ![The gallery on dev with one Aggieland basemap](../screenshots/dev-campus-basemaps/before-dev-gallery.png) | ![The gallery on dev with three dated raster basemaps under Aggieland, October 2026 chosen and drawn](../screenshots/dev-campus-basemaps/after-october-raster-chosen.png) | ![The gallery as production shows it, with one Aggieland basemap](../screenshots/dev-campus-basemaps/after-production-gallery.png) |
 
 ### GIS Day: the 2026 VGI competition, the Monument Trail Challenge
 
@@ -51,6 +129,30 @@ is gone from the Competitions menu and the Competitions page, and its own page i
 | ![The Competitions menu with four entries, the last being Aggie Map Design Competition](../screenshots/gisday-2026-no-aggie-map-competition/before-competitions-menu.png) | ![The Competitions menu with three entries](../screenshots/gisday-2026-no-aggie-map-competition/after-competitions-menu.png) |
 | ![The Competitions page with four competitions](../screenshots/gisday-2026-no-aggie-map-competition/before-competitions-page.png) | ![The Competitions page with three competitions](../screenshots/gisday-2026-no-aggie-map-competition/after-competitions-page.png) |
 
+### GIS Day: the competition pages match the 2026 schedule
+
+Three competition pages disagreed with the schedule ([#1709](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1709)):
+
+- **Presentation Competition.** The date under the title said Wednesday, November 18th; both sessions
+  are on Tuesday, November 17th. The graduate session moves from Wednesday morning to Tuesday
+  3:00 - 4:00 PM, and the undergraduate session is 2:00 - 3:00 PM so the two no longer overlap.
+- **Poster Competition.** The poster session was headed "Presentation Competition Session", on the page
+  and in its side menu; it says "Poster Competition Session". Its time is 4:15-5:15PM, not 4:00-5:00PM.
+- **Monument Trail Challenge.** "Monuments and Memorial Markers" is gone from the list of what is being
+  surveyed and from the examples, with the line about statues and sculptures, leaving plaques for trees
+  and benches.
+
+The "after" images were taken with the button fix ([#1708](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1708)) also in place, which is why the
+Submit button's label is centred in them.
+
+| Before | After |
+| --- | --- |
+| ![The Presentation Competition page dated Wednesday, November 18th]($../screenshots/1709-gisday-competition-pages/before-presentation-top.png) | ![The page dated Tuesday, November 17th]($../screenshots/1709-gisday-competition-pages/after-presentation-top.png) |
+| ![The graduate session on Wednesday morning]($../screenshots/1709-gisday-competition-pages/before-presentation-session.png) | ![Both sessions on Tuesday, 2:00 - 3:00 and 3:00 - 4:00 PM]($../screenshots/1709-gisday-competition-pages/after-presentation-session.png) |
+| ![The poster session headed Presentation Competition Session, 4:00-5:00PM]($../screenshots/1709-gisday-competition-pages/before-posters-session.png) | ![Headed Poster Competition Session, 4:15-5:15PM]($../screenshots/1709-gisday-competition-pages/after-posters-session.png) |
+| ![Two things to survey and a line about statues]($../screenshots/1709-gisday-competition-pages/before-monuments-list.png) | ![Plaques for Trees and Benches only]($../screenshots/1709-gisday-competition-pages/after-monuments-list.png) |
+| ![Two example sections]($../screenshots/1709-gisday-competition-pages/before-monuments-examples.png) | ![The Plaques for Trees and Benches examples only]($../screenshots/1709-gisday-competition-pages/after-monuments-examples.png) |
+
 ### GIS Day: the sponsorship levels double for 2026
 
 The sponsor page on the GIS Day site showed last year's amounts. Each level is now twice what it was:
@@ -61,6 +163,21 @@ the public site with GIS Day's next deploy, not with an AggieMap release.
 | Before | After |
 | --- | --- |
 | ![The four levels at $256, $512, $1,024 and $2,048](../screenshots/gisday-sponsor-prices-2026/before.png) | ![The four levels at $512, $1,024, $2,048 and $4,096](../screenshots/gisday-sponsor-prices-2026/after.png) |
+
+### GIS Day: button labels are centred again
+
+On the GIS Day site a link styled as a button showed its label at the left edge of the button:
+"Submit Your Presentation", "Submit Your Poster", "Read Event Details" and the rest. The shared rule
+that makes such a link a proper block (so its width and padding apply) left GIS Day's own button
+definition centring with a property that only works on a flex box. The label is now centred in that
+one definition, as the shared button does it, so every button on the site follows
+([#1708](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1708)). Buttons that were already centred, such as those on the sponsor page, are unchanged.
+
+| Before | After |
+| --- | --- |
+| ![Read Event Details at the left edge of its button]($../screenshots/1708-gisday-button-labels/before-vgi-button.png) | ![Read Event Details centred]($../screenshots/1708-gisday-button-labels/after-vgi-button.png) |
+| ![Submit Your Poster at the left edge of its button]($../screenshots/1708-gisday-button-labels/before-posters-top.png) | ![Submit Your Poster centred]($../screenshots/1708-gisday-button-labels/after-posters-top.png) |
+| ![The sponsor page's buttons, already centred]($../screenshots/1708-gisday-button-labels/before-sponsors-buttons.png) | ![The sponsor page's buttons, unchanged]($../screenshots/1708-gisday-button-labels/after-sponsors-buttons.png) |
 
 ### GIS Day: ten more ways to sponsor, listed on the sponsor page
 
@@ -74,6 +191,23 @@ any level ([#1658](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.mo
 | --- | --- |
 | ![The sponsor page ending after the four levels](../screenshots/gisday-sponsor-addons/before.png) | ![The sponsor page with ten additional opportunities listed under the levels](../screenshots/gisday-sponsor-addons/after.png) |
 
+### GIS Day: a presenter's university banner is on their own page too
+
+On the Presenters page each card carries a corner banner with the university the presenter attended
+and their class year, in that university's colour. Opening a presenter lost it: their own page showed
+the same photograph with nothing on it. The banner is now on the photograph there as well, at desktop
+and phone widths, and a presenter with no university recorded shows none on either page. The cards
+themselves are unchanged ([#1703](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1703)).
+
+The "before" images are the live site and the "after" images a local copy, which has no presenter
+photographs, so the grey placeholder in the "after" column is the local copy and not part of the change.
+
+| Before | After |
+| --- | --- |
+| ![A presenter's page with a photograph and no banner](../screenshots/1703-presenter-class-banner/before-presenter-gsu.png) | ![The same page with a blue GSU '91 banner across the corner of the photograph](../screenshots/1703-presenter-class-banner/after-presenter-gsu.png) |
+| ![The same page at phone width, no banner](../screenshots/1703-presenter-class-banner/before-presenter-phone.png) | ![The page at phone width with the banner clipped to the photograph](../screenshots/1703-presenter-class-banner/after-presenter-phone.png) |
+| ![The Presenters page, each card with its banner](../screenshots/1703-presenter-class-banner/before-presenters-list.png) | ![The Presenters page, the banners in the same place](../screenshots/1703-presenter-class-banner/after-presenters-list.png) |
+
 ---
 
 ## What to test on dev
@@ -83,15 +217,22 @@ any level ([#1658](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.mo
 production. A pull request with a visible result adds its own row; at release, the rows move into the
 dated notes as what was tested, and this table empties.
 
-**Currently on dev for testing:** nothing beyond the [12 October release](2026-10-12.md) itself.
+**Currently on dev for testing:** the first row, once a build with it reaches dev.
 
 | Change | Open this on dev | Look for |
 | --- | --- | --- |
+| Basemap pictures ship with the app ([#1730](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1730)) | [The main map's basemap panel](https://dev.aggiemap.tamu.edu/map/d/settings), and the same on [an event map](https://dev.aggiemap.tamu.edu/parking/visitor-parking/map/d/settings) | Every campus basemap row and Aerial Imagery has its picture as soon as the panel is drawn, not one after another. Reload: still at once. The Esri basemaps' pictures still come from Esri |
+| View as production ([#1722](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1722)) | [The main map](https://dev.aggiemap.tamu.edu/map/d), and [All Maps](https://dev.aggiemap.tamu.edu/all-maps) | A small white **View as production** control at the bottom of every page. Click it: the page reloads with a yellow **Viewing as production** banner, the Directions, Bus Routes and Experiments tabs are gone, and the basemap panel lists one Aggieland. Open another map from All Maps: the banner is still there. **Back to dev** returns to the same page with everything back. All Maps has a **View as Production** section at the bottom while the switch is off. On [production](https://aggiemap.tamu.edu/map/d?as=production) nothing changes and there is no control |
+| Legend symbols match the map ([#1721](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1721)) | [Football Transportation, Micromobility, Entry](https://dev.aggiemap.tamu.edu/events/gameday-parking/map/d?transport-type=micromobility&direction=entry) | In the legend, **Entry Routes is a thin purple line with an arrowhead**, as on the map, not a wide purple bar. Reload several times: it is the same every time. It was intermittent before, so one good load proves little; the suite forces the bad order and checks it |
+| Dated raster campus basemaps in the gallery ([#1582](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1582)) | [The main map's basemap panel](https://dev.aggiemap.tamu.edu/map/d/settings) | First **Aggieland vector, September 2026**, then **Aggieland raster, October 2026**, **June 2026** and **May 2026**, each with a thumbnail. Choose October: the map redraws on the raster basemap in the same place, with the buildings and labels on top, and zooming all the way in never shows white. Choose the vector one again: it comes back. Reload: the map opens on the vector one. **Then, with a dated one still chosen, open [Outdoor Track Parking](https://dev.aggiemap.tamu.edu/parking/outdoor-track-parking) and [Football Transportation](https://dev.aggiemap.tamu.edu/events/gameday-parking): each draws on that basemap, framed on its own lots, not white ([#1726](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1726)).** [Production](https://aggiemap.tamu.edu/map/d/settings) lists a single Aggieland |
 | GIS Day: 2026 VGI competition page ([#1665](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1665)) | Not on dev: GIS Day has no dev site yet ([#1525](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1525)). Locally, `/competitions/vgi` and `/competitions/monuments` | The VGI page says "November 9-20, 2026" and "2026 Competition: Texas A&M University Monument Trail Challenge", with 2025's Art Trail Challenge first under Prior Competitions. "Read Event Details" opens the new page: two things to collect, one point each, winners Thursday November 19, University Architect logo, no broken images |
 | GIS Day: poster and presentation competition dates moved to 2026 ([#1662](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1662)) | Not on dev, for the same reason. Locally, `/competitions/posters` and `/competitions/presentation` | No 2025 date on either page. Posters: Tuesday November 17th, 2026, due Monday November 9th. Presentations: Tuesday November 17th and Wednesday November 18th, 2026 |
 | GIS Day: Aggie Map Design Competition removed ([#1661](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1661)) | Not on dev: GIS Day has no dev site yet ([#1525](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1525)). Locally, `/competitions` | The Competitions menu and page list VGI, Poster and Presentation only; `/competitions/aggie-map` goes to the home page |
+| GIS Day: competition pages corrected for 2026 ([#1709](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1709)) | Not on dev, for the same reason. Locally, `/competitions/presentation`, `/competitions/posters` and `/competitions/monuments` | Presentation: Tuesday, November 17th, 2026 under the title; undergraduate 2:00 - 3:00 PM and graduate 3:00 - 4:00 PM, both Tuesday. Posters: the session is headed Poster Competition Session, on the page and in the side menu, at 4:15-5:15PM. Monuments: the list and the examples show Plaques for Trees and Benches only, and no line about statues |
 | GIS Day sponsorship levels doubled ([#1655](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1655)) | Not on dev: GIS Day has no dev site yet ([#1525](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1525)). Locally, `/sponsors/tamu` (see `docs/gisday-local.md`) | Point $512, Line $1,024, Polygon $2,048, Raster $4,096; each level's perks unchanged |
+| GIS Day: button labels centred ([#1708](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1708)) | Not on dev, for the same reason. Locally, `/competitions/vgi`, `/competitions/posters`, `/competitions/presentation` and `/sponsors/tamu` | The label of every button is in the middle of the button, not at its left edge: Read Event Details, Submit Your Poster, Submit Your Presentation. The sponsor page's buttons look as they did |
 | GIS Day additional sponsorship opportunities ([#1658](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1658)) | Not on dev, for the same reason. Locally, `/sponsors/tamu` | Under the four levels: "Additional Sponsorship Opportunities", ten rows from Daily Coffee Break Sponsor ($1,500 per day) to VGI Competition Sponsor ($1,000), and a "Send Us a Message" button |
+| GIS Day: university banner on a presenter's own page ([#1703](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1703)) | Not on dev, for the same reason. Locally, `/presenters`, then open any presenter | The banner on the card (for example "TAMU '24") is also across the top-left corner of the photograph on the presenter's own page, same text and colour. A presenter whose card has no banner has none on their page. Narrow the window to phone width: the banner stays inside the photograph. The Presenters page itself looks as it did |
 
 ---
 
@@ -100,6 +241,14 @@ dated notes as what was tested, and this table empties.
 Nothing below has merged, so it is not part of a release yet. This section exists because
 [`CLAUDE_SETUP.md`](../../CLAUDE_SETUP.md) sends a session on another machine here first, and an empty
 file would say the work had stopped.
+
+### The smoke suite ([#1716](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1716), [#1717](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1717)), 12 October
+
+| What | State |
+| --- | --- |
+| Maps reported as "drew but never settled" ([#1716](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1716), High) | The cause is measured and written on the issue: the check's 90-second clock, on a machine short of CPU. The nightly runs on both environments have failed or been cancelled on it since 7 October. The fix chosen is a longer clock; not started |
+| Three tiers: quick, release, full ([#1717](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1717), High) | On the branch `test/1717-smoke-tiers`, no pull request yet. `run-local.sh development quick` runs a fixed core plus what changed since the last `dev-*` tag. The second 12 October release was cleared by this set, run by hand |
+| Whether loading got heavier on 6 October | To be filed, Medium: the failures begin the day after every layer started drawing with its service's symbology, and a slow phone is short of CPU too |
 
 ### Signals and OnPush ([#1455](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1455)), 12 October
 
@@ -128,8 +277,15 @@ map's definition only when its map opens ([#1646](https://github.com/TamuGeoInno
 
 - **Its production site is on an Angular 15 build**, so its next deploy carries every upgrade and refactor
   of 2026 at once. [#1611](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1611) (high) is the test pass on its dev site first.
-- **Running the whole GIS Day stack locally** needs a development database and a development Auth0
-  application ([#1511](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1511), [#1522](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1522)).
+- **The whole GIS Day stack runs locally** from `scripts/gisday-local.sh`, with sign-in, on a starting
+  database kept in the repository that holds nobody's real data. [`docs/gisday-local.md`](../gisday-local.md)
+  explains it and `CLAUDE_SETUP.md` Phase 6 is the step-by-step ([#1621](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1621), [#1522](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1522)).
+- **A new developer still has to be given one file**, the API's settings, because it holds production's
+  Auth0 credentials until a separate development tenant exists ([#1623](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1623), medium).
+- **No development database exists outside a developer's machine.** [#1511](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1511) (medium) is open for
+  that: one on the cluster, then a migration run and reverted there, following
+  [`docs/gisday-migrations.md`](../gisday-migrations.md). It is the first step of the dev site
+  ([#1525](https://github.com/TamuGeoInnovation/Tamu.GeoInnovation.js.monorepo/issues/1525), high).
 
 **What Angular's standalone migration gets wrong here, so check for it next time:**
 
