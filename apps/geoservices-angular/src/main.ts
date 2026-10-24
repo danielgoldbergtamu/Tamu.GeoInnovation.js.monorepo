@@ -16,7 +16,6 @@ import { ViewportScroller } from '@angular/common';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { Angulartics2Module } from 'angulartics2';
 import { withInMemoryScrolling, provideRouter, Routes } from '@angular/router';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HighlightPlusModule } from 'ngx-highlightjs/plus';
 import { AppComponent } from './app/app.component';
 
@@ -59,7 +58,7 @@ bootstrapApplication(AppComponent, {
     // Every component still relies on Zone.js (ChangeDetectionStrategy.Eager); without this,
     // bootstrapApplication runs zoneless since Angular 21 (#1563, #1478).
     provideZoneChangeDetection(),
-    importProvidersFrom(BrowserModule, Angulartics2Module.forRoot(), BrowserAnimationsModule, HighlightPlusModule),
+    importProvidersFrom(BrowserModule, Angulartics2Module.forRoot(), HighlightPlusModule),
     AuthService,
     provideAppInitializer(() => {
       // Start AuthService's login-state request at boot, as AppModule's constructor did.
