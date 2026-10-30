@@ -22,6 +22,19 @@ export class TileLinkDirective {
 
   @HostListener('click', ['$event.target'])
   protected _click(target: HTMLElement) {
+    this.follow(target);
+  }
+
+  /** Whether `target` is this link's own element or inside it, so a click there is the link's own. */
+  public contains(target: EventTarget | null): boolean {
+    return target instanceof Node && (this.el.nativeElement as HTMLElement).contains(target);
+  }
+
+  /**
+   * Goes to the location. Called on a click on the link's own element, and by the tile around it for a click or key
+   * anywhere else on the tile (#2588).
+   */
+  public follow(target: HTMLElement = this.el.nativeElement) {
     const lt = this.testLocation(this.location());
 
     if (lt === LocationType.EXTERNAL) {

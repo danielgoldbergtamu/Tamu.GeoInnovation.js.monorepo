@@ -10,6 +10,11 @@ export class TileTitleComponent implements OnInit {
 
   public title: string;
 
+  /** The title's own element, which a page may have given a handler of its own, as the GIS Day Login tile does. */
+  public get element(): HTMLElement {
+    return this.view.nativeElement;
+  }
+
   public ngOnInit() {
     this.title = (this.view.nativeElement as HTMLElement).innerText;
   }
