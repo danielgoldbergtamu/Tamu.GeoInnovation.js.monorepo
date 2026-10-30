@@ -5,9 +5,15 @@
     </div>
 
     <div class="form-section-body">
-      @if ((users$ | async) !== null) { @if ((users$ | async)?.length > 0) {
+      <div class="form-collection">
+        <tamu-gisc-textbox [formControl]="search" type="text" placeholder="Search by name or email" [floatLabel]="true"></tamu-gisc-textbox>
+      </div>
+
+      @if (users$ | async; as list) { @if (list.truncated) {
+      <p>Showing the first 1,000 users. Search to find anyone else.</p>
+      } @if (list.users.length > 0) {
       <div>
-        <p>Displaying <strong>{{(users$ | async).length}}</strong> users.</p>
+        <p>Displaying <strong>{{list.users.length}}</strong> users.</p>
       </div>
       <table class="floating-table">
         <thead>
@@ -18,7 +24,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (user of (users$ | async); track user) {
+          @for (user of list.users; track user.user_info.id) {
           <tr>
             <td>{{user?.user_info?.name}}</td>
             <td>{{user?.user_info?.email}}</td>
@@ -27,6 +33,8 @@
           }
         </tbody>
       </table>
+      } @else if (search.value.trim()) {
+      <p>No users match that search.</p>
       } @else {
       <p>There are no users yet.</p>
       } } @else {
