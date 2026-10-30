@@ -13,8 +13,7 @@ import {
   JoinColumn
 } from 'typeorm';
 
-
-import { Season } from '@tamu-gisc/gisday/platform/data-api';
+import { DATABASE_NOW, Season } from '@tamu-gisc/gisday/platform/data-api';
 
 import { COMPETITION_VALIDATION_STATUS } from '@tamu-gisc/gisday/common';
 
@@ -23,10 +22,10 @@ export class GISDayCompetitionBaseEntity extends BaseEntity {
   @PrimaryColumn()
   public guid: string;
 
-  @UpdateDateColumn({ type: 'datetimeoffset' })
+  @UpdateDateColumn({ type: 'datetimeoffset', default: () => DATABASE_NOW })
   public updated: Date;
 
-  @CreateDateColumn({ type: 'datetimeoffset' })
+  @CreateDateColumn({ type: 'datetimeoffset', default: () => DATABASE_NOW })
   public created: Date;
 
   @BeforeUpdate()

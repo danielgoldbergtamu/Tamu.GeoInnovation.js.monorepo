@@ -15,9 +15,9 @@ import {
   FindOptionsRelations
 } from 'typeorm';
 
+import { DATABASE_NOW } from './utc-timestamps';
 
 // TODO:
-
 
 /**
  * A flat object of primitive values, as a GeoJSON feature's `properties`. Lives here, beside its only users (this file and
@@ -115,10 +115,10 @@ export class OldCompetitionEntity extends BaseEntity {
 
 @Entity()
 export class TimeStampEntity extends BaseEntity {
-  @UpdateDateColumn({ type: 'datetimeoffset' })
+  @UpdateDateColumn({ type: 'datetimeoffset', default: () => DATABASE_NOW })
   public updated: Date;
 
-  @CreateDateColumn({ type: 'datetimeoffset' })
+  @CreateDateColumn({ type: 'datetimeoffset', default: () => DATABASE_NOW })
   public created: Date;
 }
 

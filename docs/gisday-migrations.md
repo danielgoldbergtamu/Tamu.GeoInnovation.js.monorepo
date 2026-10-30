@@ -43,6 +43,15 @@ both would try at once.
 
 A fix to records, not to the schema, takes the same route as a reviewed SQL script.
 
+## Timestamps, and a database whose clock is not UTC
+
+Every table's `created` and `updated` default to `SYSDATETIMEOFFSET()`, and the API stamps both itself on every insert and
+update (`UtcTimestampSubscriber`, #2584), because typeorm writes `updated = CURRENT_TIMESTAMP` on an update, which SQL Server
+reads as the server's local time. Production's server is on Central time; the local `gisday-db` container is UTC, which hides
+any mistake of this kind. To test one, start a throwaway SQL Server with `-e TZ=America/Chicago` on the `gisday-local`
+network, restore the seed into it, and point the migration targets (`TYPEORM_HOST`) and
+`libs/gisday/platform/data-api/src/lib/entities/utc-timestamps.database.spec.ts` (`GISDAY_TIMESTAMP_DB_HOST`) at it.
+
 ## Running against dev or production
 
 The targets read the connection from the environment, so the same command serves any database. Put

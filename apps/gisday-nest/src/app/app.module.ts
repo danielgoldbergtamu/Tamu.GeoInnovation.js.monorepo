@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bull';
 
 import {
   GISDAY_ENTITIES,
+  GISDAY_SUBSCRIBERS,
   CheckInModule,
   ClassModule,
   EventModule,
@@ -58,7 +59,8 @@ const onlyWith = <T>(feature: GisdayFeature, modules: Array<T>): Array<T> => (si
       dropSchema: ormConfig.dropSchema,
       logging: ormConfig.logging,
       extra: ormConfig.extra,
-      entities: [...GISDAY_ENTITIES, ...GISDAY_COMPETITIONS_ENTITIES]
+      entities: [...GISDAY_ENTITIES, ...GISDAY_COMPETITIONS_ENTITIES],
+      subscribers: GISDAY_SUBSCRIBERS
     }),
     AuthorizationModule.forRoot({
       jwt: {

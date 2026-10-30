@@ -1,5 +1,6 @@
 // Entities
 export * from './lib/entities/all.entity';
+export * from './lib/entities/utc-timestamps';
 
 // Modules
 export * from './lib/check-in/check-in.module';

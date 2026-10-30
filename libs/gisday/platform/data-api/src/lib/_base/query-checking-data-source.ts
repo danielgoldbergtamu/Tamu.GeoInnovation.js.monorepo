@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 
 import { GISDAY_ENTITIES } from '../entities/all.entity';
+import { GISDAY_SUBSCRIBERS } from '../entities/utc-timestamps';
 
 /**
  * For specs: the API's real entities on a SQL Server data source that never connects. Its repositories build the real SQL
@@ -26,7 +27,8 @@ export async function queryCheckingDataSource(extraEntities: Array<EntityTarget<
   const dataSource = new DataSource({
     type: 'mssql',
     host: 'localhost',
-    entities: [...GISDAY_ENTITIES, ...extraEntities] as never
+    entities: [...GISDAY_ENTITIES, ...extraEntities] as never,
+    subscribers: GISDAY_SUBSCRIBERS
   });
 
   // initialize() would connect. The metadata is all the query builder needs, and building it is what initialize does next.
@@ -68,27 +70,33 @@ export function queryCheckingRepository<T extends ObjectLiteral>(
  */
 export function recordWrites(
   dataSource: DataSource,
-  rows: Array<[EntityTarget<ObjectLiteral>, Array<ObjectLiteral>]> = []
+  rows: Array<[EntityTarget<ObjectLiteral>, Array<ObjectLiteral>]> = [],
+  reads: (sql: string) => Array<ObjectLiteral> = () => []
 ): { statements: Array<{ sql: string; parameters: Array<unknown> }> } {
   const statements: Array<{ sql: string; parameters: Array<unknown> }> = [];
 
+  // The driver's own runner, so its broadcaster calls the entities' listeners and the data source's subscribers as it would
+  // when it writes, with every call that would reach the database answered here instead.
+  const createRunner = dataSource.createQueryRunner.bind(dataSource);
+
   dataSource.createQueryRunner = () => {
-    const runner = {
-      connection: dataSource,
-      data: {},
-      isReleased: false,
-      isTransactionActive: false,
-      broadcaster: { broadcast: async () => undefined },
+    const runner = createRunner() as QueryRunner & { isTransactionActive: boolean; manager: EntityManager };
+
+    Object.assign(runner, {
       connect: async () => undefined,
       release: async () => undefined,
       startTransaction: async () => ((runner.isTransactionActive = true), undefined),
       commitTransaction: async () => ((runner.isTransactionActive = false), undefined),
       rollbackTransaction: async () => ((runner.isTransactionActive = false), undefined),
-      query: async (sql: string, parameters: Array<unknown> = []) => (
-        statements.push({ sql, parameters }),
-        { raw: [], affected: 0, records: [] }
-      )
-    } as unknown as QueryRunner & { isTransactionActive: boolean; manager: EntityManager };
+      query: async (sql: string, parameters: Array<unknown> = []) => {
+        statements.push({ sql, parameters });
+
+        // `reads` answers the SELECTs that typeorm makes before it decides between an insert and an update.
+        const answer = /^\s*SELECT/i.test(sql) ? reads(sql) : [];
+
+        return { raw: answer, affected: 0, records: answer };
+      }
+    });
 
     runner.manager = dataSource.createEntityManager(runner);
     runner.manager.find = (async (entity: EntityTarget<ObjectLiteral>) =>
