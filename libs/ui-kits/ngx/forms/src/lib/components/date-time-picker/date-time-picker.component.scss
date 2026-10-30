@@ -33,11 +33,15 @@ tamu-gisc-tooltip-trigger {
   padding: 0.5rem;
   box-sizing: border-box;
 }
+
 // The calendar and the list of times are drawn by Angular Material in an overlay at the end of <body>,
 // outside this component, and take their look from theme values an application would normally set once
 // for all of Material. No application here uses Material for anything else, so the handful they read are
 // set on their own panels, through Material's override mixins, and they inherit the application's font.
-::ng-deep .tamu-gisc-date-time-picker-panel {
+//
+// The calendar takes its panel class on the calendar itself, inside the box that draws its background, so
+// its values are set on Material's own popup around that box, for a popup that holds this picker's calendar.
+::ng-deep .mat-datepicker-popup:has(.tamu-gisc-date-time-picker-panel) {
   @include mat.datepicker-overrides(
     (
       calendar-container-background-color: #ffffff,
@@ -62,6 +66,13 @@ tamu-gisc-tooltip-trigger {
     )
   );
 
+  // The calendar is a table, and the sites stripe every other row of a table.
+  .mat-calendar-table tr {
+    background: none;
+  }
+}
+
+::ng-deep .tamu-gisc-date-time-picker-panel {
   @include mat.timepicker-overrides(
     (
       container-background-color: #ffffff,
