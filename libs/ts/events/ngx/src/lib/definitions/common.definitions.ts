@@ -68,6 +68,11 @@ export const commonSymbols = {
  *
  * Women's Basketball was written this way by hand in #2176 and is the only athletics map whose
  * development popups have ever worked; this generalises it.
+ *
+ * **`refreshInterval`** (minutes) polls the service, for a map staff edit on game day, so a visitor with the map
+ * open sees a lot close without a reload (#2581, as #2558 did for Men's Basketball). ArcGIS refetches only when the
+ * service's `lastEditDate` moves, so a one-minute poll costs almost nothing. Left out, the source has no refresh, and
+ * no `refreshInterval` key either: every other caller's source is exactly what it was.
  */
 export function athleticsDevelopmentSource(source: {
   id: string;
@@ -75,6 +80,7 @@ export function athleticsDevelopmentSource(source: {
   title?: string;
   /** The `type` value this layer shows, where production split one service layer into two. */
   onlyType?: string;
+  refreshInterval?: number;
 }): LayerSource {
   return {
     type: 'feature',
@@ -90,7 +96,8 @@ export function athleticsDevelopmentSource(source: {
     listMode: 'show',
     native: {
       outFields: ['*'],
-      ...(source.onlyType === undefined ? {} : { definitionExpression: `type = '${source.onlyType}'` })
+      ...(source.onlyType === undefined ? {} : { definitionExpression: `type = '${source.onlyType}'` }),
+      ...(source.refreshInterval === undefined ? {} : { refreshInterval: source.refreshInterval })
     }
   } as unknown as LayerSource;
 }

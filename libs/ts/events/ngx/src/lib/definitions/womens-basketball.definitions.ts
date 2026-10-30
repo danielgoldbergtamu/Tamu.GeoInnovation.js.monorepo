@@ -29,14 +29,20 @@ export enum WOMENS_BASKETBALL_LAYERS {
 // development host; Accessible Parking Spaces is 0 and the event lots are 1 on both.
 const parkingUrl = Connections.womensBasketballUrl;
 
+// Staff edit both layers on game day, so each polls the service every minute and a visitor with the map open sees
+// the change without a reload (#2581, as Men's Basketball does since #2558).
+const refreshInterval = 1;
+
 export const WomensBasketball_DevelopmentLayerSources: LayerSource[] = [
   athleticsDevelopmentSource({
     id: WOMENS_BASKETBALL_LAYERS.ACCESSIBLE_PARKING,
-    url: `${parkingUrl}/0`
+    url: `${parkingUrl}/0`,
+    refreshInterval
   }),
   athleticsDevelopmentSource({
     id: WOMENS_BASKETBALL_LAYERS.PARKING_LOTS,
-    url: `${parkingUrl}/1`
+    url: `${parkingUrl}/1`,
+    refreshInterval
   })
 ];
 
