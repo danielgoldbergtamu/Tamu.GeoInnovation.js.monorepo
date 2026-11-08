@@ -7,20 +7,10 @@ import {
   EventConfiguration,
   SpecialEventOptions
 } from '../interfaces/special-event.interface';
+import { DINING_KIOSK_LAYERS } from './kiosk-layer-ids';
 
-/**
- * Layer ids used by the Dining kiosk map. `BUILDINGS` is the same always-on basemap layer shown by
- * default on the main map, and `DINING_LOCATIONS` is the one layer this kiosk map exists to show, on
- * from the start. As a kiosk map it loads none of the main map's layers, so these two and the
- * basemap are all it draws (#1392). Future kiosk maps for other layers can follow the same
- * pattern: reuse `BUILDINGS` as the standard basemap layer and add their own single layer.
- */
-export enum DINING_KIOSK_LAYERS {
-  // First, so it draws on top (docs/map-layers.md, "Drawing order"): the buildings are a near-invisible click layer,
-  // and above the dining locations they took every click on one inside a building (#2552).
-  DINING_LOCATIONS = 'dining-locations-layer',
-  BUILDINGS = 'buildings-layer'
-}
+// The layer ids live in kiosk-layer-ids.ts, which has no imports, so the smoke suite can read them (#2701).
+export { DINING_KIOSK_LAYERS };
 
 /**
  * The buildings every kiosk map draws, as the main map draws them by default. A kiosk loads none of the

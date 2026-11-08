@@ -1,7 +1,16 @@
 import { Page } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+
+import {
+  DINING_KIOSK_LAYERS,
+  TAILGATING_KIOSK_LAYERS,
+  TAILGATING_LAYERS
+} from '../../../libs/ts/events/ngx/src/lib/definitions/kiosk-layer-ids';
 
 import { expect, test } from './fixtures';
 import { blockAnalytics } from './analytics';
+import { smokeBaseUrl } from './gis-hosts';
 
 /**
  * The dining kiosk draws its dining locations (#1392).
@@ -28,10 +37,13 @@ import { blockAnalytics } from './analytics';
 const PROBE_GLOBAL = '__tamuGiscMapProbe';
 
 const KIOSK_ROUTE = '/kiosk/dining/map';
-const DINING_LAYER_ID = 'dining-locations-layer';
+const DINING_LAYER_ID: string = DINING_KIOSK_LAYERS.DINING_LOCATIONS;
 
-/** Every layer the dining kiosk's own definition adds. Anything else that is not basemap came from the main map. */
-const KIOSK_LAYER_IDS = ['buildings-layer', DINING_LAYER_ID];
+/**
+ * Every layer the dining kiosk's own definition adds, read from the definition itself rather than copied, so
+ * the list keeps up with the definition (#2701). Anything else that is not basemap is not the kiosk's.
+ */
+const KIOSK_LAYER_IDS: string[] = Object.values(DINING_KIOSK_LAYERS);
 
 /** Probe layer types a basemap is made of. */
 const BASEMAP_TYPES = ['tile', 'vector-tile'];
@@ -110,8 +122,13 @@ test("the dining kiosk holds only its own layers and the basemap, none of the ma
     .filter((l) => !BASEMAP_TYPES.includes(l.type) && !KIOSK_LAYER_IDS.includes(l.id))
     .map((l) => l.id);
 
-  expect(others, `${KIOSK_ROUTE} also loads the main map's layers`).toEqual([]);
+  expect(others, notInDefinition(KIOSK_ROUTE, others)).toEqual([]);
 });
+
+/** The failure message for layers a kiosk draws that its definition does not list, naming them. */
+function notInDefinition(route: string, ids: string[]): string {
+  return `${route} draws ${ids.length} layer(s) its definition does not list: ${ids.join(', ')}`;
+}
 
 /**
  * The Football Tailgating kiosk (#1975): the tailgating map with no sidebar, drawing the tailgating
@@ -120,22 +137,38 @@ test("the dining kiosk holds only its own layers and the basemap, none of the ma
  */
 const TAILGATING_KIOSK_ROUTE = '/kiosk/football-tailgating/map';
 
-/** Every layer the tailgating kiosk's definition adds: the tailgating map's own, and the buildings. */
-const TAILGATING_KIOSK_LAYER_IDS = [
-  'tailgating-zone-numbers',
-  'tailgating-tents',
-  'tailgating-simpson-tents',
-  'tailgating-aggie-park',
-  'tailgating-west-campus',
-  'tailgating-construction',
-  'buildings-layer'
-];
+/**
+ * Every layer the tailgating kiosk's definition adds: the tailgating map's own, and the buildings. Read from
+ * the definition, not copied: a hand-kept list here went stale the day the restrooms were added (#2661, #2701).
+ */
+const TAILGATING_KIOSK_LAYER_IDS: string[] = Object.values(TAILGATING_KIOSK_LAYERS);
+
+/**
+ * Kiosk layers this environment's deployed build does not have yet, each with the issue that tracks it
+ * (environments.json `allowedMissingKioskLayers`). The list is read from this checkout's definition, so a
+ * layer added since an environment's last release is listed here and missing there until the next one.
+ */
+function allowedMissing(): Record<string, string> {
+  const environments: Record<string, { baseUrl: string; allowedMissingKioskLayers?: Record<string, string> }> = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'environments.json'), 'utf8')
+  );
+  const base = smokeBaseUrl().replace(/\/$/, '');
+
+  return Object.values(environments).find((env) => env.baseUrl.replace(/\/$/, '') === base)?.allowedMissingKioskLayers ?? {};
+}
+
+const ALLOWED_MISSING = allowedMissing();
+
+/** The layers the deployed kiosk must draw: every one its definition lists, less those not deployed here yet. */
+const TAILGATING_KIOSK_DEPLOYED_IDS = TAILGATING_KIOSK_LAYER_IDS.filter((id) => !(id in ALLOWED_MISSING));
 
 /**
  * The layers that must have features. Construction is left out: it shows only the projects that affect
  * tailgating, and a project that ends leaves it rightly empty.
  */
-const TAILGATING_KIOSK_LAYERS_WITH_FEATURES = TAILGATING_KIOSK_LAYER_IDS.filter((id) => id !== 'tailgating-construction');
+const TAILGATING_KIOSK_LAYERS_WITH_FEATURES = TAILGATING_KIOSK_DEPLOYED_IDS.filter(
+  (id) => id !== TAILGATING_LAYERS.CONSTRUCTION
+);
 
 const SELECTION_LAYER_ID = 'selection-layer';
 
@@ -156,9 +189,20 @@ async function finishesDrawing(page: Page, link: string): Promise<void> {
 test("the football tailgating kiosk draws its own layers, none of the main map's, and finishes drawing", async ({
   page
 }) => {
-  const layers = await openKiosk(page, TAILGATING_KIOSK_ROUTE, TAILGATING_KIOSK_LAYER_IDS);
+  const layers = await openKiosk(page, TAILGATING_KIOSK_ROUTE, TAILGATING_KIOSK_DEPLOYED_IDS);
 
-  for (const id of TAILGATING_KIOSK_LAYER_IDS) {
+  for (const [id, known] of Object.entries(ALLOWED_MISSING)) {
+    const present = layers.some((l) => l.id === id);
+
+    test.info().annotations.push({
+      type: present ? 'known failure now passing' : 'known failure',
+      description: present
+        ? `${id} is on ${TAILGATING_KIOSK_ROUTE} now; remove it from allowedMissingKioskLayers (${known})`
+        : `${id} is not on ${TAILGATING_KIOSK_ROUTE} yet (${known})`
+    });
+  }
+
+  for (const id of TAILGATING_KIOSK_DEPLOYED_IDS) {
     const layer = layers.find((l) => l.id === id);
 
     expect(layer?.error ?? null, `${id} failed to load on ${TAILGATING_KIOSK_ROUTE}`).toBeNull();
@@ -169,12 +213,11 @@ test("the football tailgating kiosk draws its own layers, none of the main map's
     expect(layers.find((l) => l.id === id)?.featureCount ?? 0, `${id} has no features`).toBeGreaterThan(0);
   }
 
-  const others = layers.filter((l) => !BASEMAP_TYPES.includes(l.type) && !TAILGATING_KIOSK_LAYER_IDS.includes(l.id));
+  const others = layers
+    .filter((l) => !BASEMAP_TYPES.includes(l.type) && !TAILGATING_KIOSK_LAYER_IDS.includes(l.id))
+    .map((l) => l.id);
 
-  expect(
-    others.map((l) => l.id),
-    `${TAILGATING_KIOSK_ROUTE} also loads the main map's layers`
-  ).toEqual([]);
+  expect(others, notInDefinition(TAILGATING_KIOSK_ROUTE, others)).toEqual([]);
 
   await finishesDrawing(page, TAILGATING_KIOSK_ROUTE);
 });
@@ -187,7 +230,7 @@ const TAILGATING_KIOSK_LINKS = [
 
 for (const { link, title } of TAILGATING_KIOSK_LINKS) {
   test(`${link} selects its feature on the football tailgating kiosk`, async ({ page }) => {
-    await openKiosk(page, link, TAILGATING_KIOSK_LAYER_IDS);
+    await openKiosk(page, link, TAILGATING_KIOSK_DEPLOYED_IDS);
 
     await expect
       .poll(

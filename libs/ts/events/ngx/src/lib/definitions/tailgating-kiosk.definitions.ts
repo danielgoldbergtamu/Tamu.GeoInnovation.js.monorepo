@@ -3,13 +3,9 @@ import {
   EventConfiguration,
   SpecialEventOptions
 } from '../interfaces/special-event.interface';
-import { DINING_KIOSK_LAYERS, KioskBuildingsLayerSource } from './dining.definitions';
-import {
-  TAILGATING_LAYERS,
-  TailgatingColdLayerSources,
-  TailgatingConfiguration,
-  TailgatingLinkSources
-} from './tailgating.definitions';
+import { KioskBuildingsLayerSource } from './dining.definitions';
+import { TAILGATING_KIOSK_LAYERS } from './kiosk-layer-ids';
+import { TailgatingColdLayerSources, TailgatingConfiguration, TailgatingLinkSources } from './tailgating.definitions';
 
 /**
  * The Football Tailgating kiosk (#1975): the tailgating map with no sidebar, for embedding or a fixed
@@ -21,13 +17,10 @@ import {
  * the main map. As a kiosk it loads none of the main map's layers, so these and the basemap are all it
  * draws.
  *
- * The tailgating layers come first, so they keep the drawing order the tailgating map gives them, with
- * the buildings beneath them (the event service adds references in reverse order).
+ * Its layer ids, `TAILGATING_KIOSK_LAYERS`, live in kiosk-layer-ids.ts, which has no imports, so the smoke suite can
+ * read them (#2701).
  */
-export const TAILGATING_KIOSK_LAYERS = {
-  ...TAILGATING_LAYERS,
-  BUILDINGS: DINING_KIOSK_LAYERS.BUILDINGS
-} as const;
+export { TAILGATING_KIOSK_LAYERS };
 
 export const TailgatingKioskConfiguration: EventConfiguration = {
   id: 'football-tailgating',

@@ -81,6 +81,9 @@
       }
     },
     "allowedMapLayerFailures": {},
+    "allowedMissingKioskLayers": {
+      "tailgating-restrooms": "#2701: added by #2661 after production's last release; remove once a release carries it"
+    },
     "allowedBuildBannerPlaceholders": "#1306: tokenSubstitute.sh runs only in the Dockerfile, and this environment is served by IIS",
     "gtag": "G-GNS4JMVEZW",
     "healthLabel": "prod-health",

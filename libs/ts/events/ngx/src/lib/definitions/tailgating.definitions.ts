@@ -11,25 +11,10 @@ import { FootballParkingConfiguration } from './football-parking.definitions';
 
 import esri = __esri;
 import { EventPopups } from '../modules/popups/popups';
+import { TAILGATING_LAYERS } from './kiosk-layer-ids';
 
-/**
- * The tailgating zones are a hosted feature layer in TAMU's ArcGIS Online organization, maintained
- * in ArcGIS Pro. Their colors, outlines and the circled zone numbers come from the service's own
- * drawing info, so styling is changed by republishing the layer, not here. Popups read the `name`
- * and `type` fields, so keep those field names when editing the data.
- *
- * The event service adds these in reverse order, and a layer added later draws above the ones before
- * it, so the first entry draws on top: the circled numbers, then the tents, then the zones.
- */
-export enum TAILGATING_LAYERS {
-  ZONE_NUMBERS = 'tailgating-zone-numbers',
-  RESTROOMS = 'tailgating-restrooms',
-  TENTS = 'tailgating-tents',
-  SIMPSON_TENTS = 'tailgating-simpson-tents',
-  AGGIE_PARK = 'tailgating-aggie-park',
-  WEST_CAMPUS = 'tailgating-west-campus',
-  CONSTRUCTION = 'tailgating-construction'
-}
+// The layer ids live in kiosk-layer-ids.ts, which has no imports, so the smoke suite can read them (#2701).
+export { TAILGATING_LAYERS };
 
 const TAILGATE_ZONES_URL =
   'https://services1.arcgis.com/qr14biwnHA6Vis6l/arcgis/rest/services/TAMU_Tailgate_Zones/FeatureServer';
