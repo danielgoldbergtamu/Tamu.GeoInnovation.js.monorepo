@@ -119,7 +119,11 @@ async function openMap(page: Page, mapPath: string): Promise<void> {
     )
     .toBe(true);
 
-  // A click before the view has drawn can land on nothing, which would read as a broken popup.
+  await waitForDrawn(page, mapPath);
+}
+
+/** Waits until the map has finished drawing. A click before the view has drawn can land on nothing, which would read as a broken popup. */
+async function waitForDrawn(page: Page, mapPath: string): Promise<void> {
   await expect
     .poll(
       async () =>
@@ -181,24 +185,55 @@ test.describe('popup', () => {
    * is, which is how OnPush fails on a component whose data arrives outside its inputs (#1669), keeps
    * showing the feature it opened on while every check of a single popup passes.
    *
-   * A link to a building opens with its popup, zoomed to that building, so its neighbours are always in
-   * the same place on screen: Harrington to its left and Peterson below to the right, at the suite's
-   * viewport. If the link's framing changes, the first click names the building it expected.
+   * A link to a building opens with its popup, zoomed to that building. Its neighbours Harrington and Peterson
+   * are then each clicked at a point well inside its own polygon in the campus buildings layer
+   * (`TAMU_Basemap_20261008/MapServer/1`), placed on screen by the view as it is, not at a fixed fraction of
+   * the screen. A fraction means what it was meant to only while the link's framing holds: the link now opens
+   * at zoom 19 on Evans, where neither neighbour is in view, and the first click landed in Evans Library's own
+   * sub-building, 0468.1 (#2701). So the test frames the two itself, and checks each point is on the map, not
+   * under the sidebar, before it clicks.
    */
   test(`/map/d?bldg=0468: clicking one building after another shows each one's popup in turn`, HEAVY, async ({ page }) => {
     test.setTimeout(180_000);
 
     const mapPath = '/map/d?bldg=0468';
     const popup = page.locator('tamu-gisc-feature-popup .popup');
-    const clicks: Array<{ clickAt: { x: number; y: number }; shows: RegExp; feature: string }> = [
-      { clickAt: { x: 0.117, y: 0.375 }, shows: /Harrington Education Center/, feature: 'Harrington' },
-      { clickAt: { x: 0.602, y: 0.819 }, shows: /Peterson Building/, feature: 'Peterson' }
+    const clicks: Array<{ clickAt: { longitude: number; latitude: number }; shows: RegExp; feature: string }> = [
+      // Building 0438, Harrington Education Center Classroom Building: about 23 m inside its nearest edge.
+      {
+        clickAt: { longitude: -96.34042, latitude: 30.616878 },
+        shows: /Harrington Education Center/,
+        feature: 'Harrington'
+      },
+      // Building 0444, Peterson Building: about 10 m inside its nearest edge.
+      { clickAt: { longitude: -96.338446, latitude: 30.615818 }, shows: /Peterson Building/, feature: 'Peterson' }
     ];
 
     await openMap(page, mapPath);
     await expect(popup, `${mapPath} did not open with its building's popup`).toContainText(/Sterling C\. Evans Library/);
-    // The link zooms to its building after the map has drawn; the neighbours are where they are said to be once it stops.
+    // The link zooms to its building after the map has drawn; it is moved only once that has stopped.
     await waitForSettledFraming(page, mapPath);
+
+    // Halfway between the two, at a zoom where both sit in the part of the map the sidebar leaves uncovered.
+    await page.evaluate(
+      async ({ longitude, latitude }) => {
+        // The suite does not load Esri's types; this is the little of a MapView it uses.
+        type Point = { longitude: number; latitude: number };
+        type View = { center: { clone(): Point }; goTo(target: object, options: object): Promise<void> };
+        const view = (document.querySelector('arcgis-map') as unknown as { view: View }).view;
+        const center = view.center.clone();
+
+        center.longitude = longitude;
+        center.latitude = latitude;
+
+        await view.goTo({ center, zoom: 17 }, { animate: false });
+      },
+      {
+        longitude: (clicks[0].clickAt.longitude + clicks[1].clickAt.longitude) / 2,
+        latitude: (clicks[0].clickAt.latitude + clicks[1].clickAt.latitude) / 2
+      }
+    );
+    await waitForDrawn(page, mapPath);
 
     const box = await page.locator('.esri-view-surface').first().boundingBox();
 
@@ -207,7 +242,23 @@ test.describe('popup', () => {
     let showing = /Sterling C\. Evans Library/;
 
     for (const { clickAt, shows, feature } of clicks) {
-      await page.mouse.click(box!.x + box!.width * clickAt.x, box!.y + box!.height * clickAt.y);
+      // Re-read for each click, from the view as it is now.
+      const at = await clickPoint(page, clickAt, box!.width, box!.height);
+      const x = box!.x + at.x;
+      const y = box!.y + at.y;
+      const onMap = await page.evaluate(
+        ({ x, y }) => {
+          const map = document.querySelector('arcgis-map');
+          const hit = document.elementFromPoint(x, y);
+
+          return !!map && !!hit && (hit === map || map.contains(hit));
+        },
+        { x, y }
+      );
+
+      expect(onMap, `${feature} is not on the visible map at (${Math.round(x)}, ${Math.round(y)}) on ${mapPath}`).toBe(true);
+
+      await page.mouse.click(x, y);
 
       await expect(popup, `clicking ${feature} on ${mapPath} did not show its popup`).toContainText(shows, {
         timeout: 15_000
