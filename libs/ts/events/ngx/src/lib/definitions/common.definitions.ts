@@ -1,4 +1,5 @@
 import { LayerSource } from '@tamu-gisc/common/types';
+import { SearchSource } from '@tamu-gisc/ui-kits/ngx/search';
 
 import { EventPopups } from '../modules/popups/popups';
 
@@ -93,4 +94,34 @@ export function athleticsDevelopmentSource(source: {
       ...(source.onlyType === undefined ? {} : { definitionExpression: `type = '${source.onlyType}'` })
     }
   } as unknown as LayerSource;
+}
+
+/**
+ * A `?lot=043` link for a parking map whose lots carry Transportation Services' facility code, `FAC_CODE`,
+ * which a popup's copy button then writes in place of `?feature=<layerId>:<objectId>` (#2701).
+ *
+ * The object id in the generic form names a lot on one server only: the development and production GIS
+ * servers numbered the same lots independently, so AVP Parking's Lot 043 is object 26135 on one and 34694
+ * on the other, and a link copied from either opened nothing on the other. It also changes when a service
+ * is republished. `FAC_CODE` is the lot's own number, the same everywhere, and zero-padded as TS's own
+ * links are. A service that joins several tables names it `GIS.TS.ParkingLots.FAC_CODE`; both the lookup
+ * and the copy button match a field by its last part.
+ *
+ * Link-only (`searchActive: false`), so the sidebar search is unchanged. `?lot=43` and `?lot=Lot 043` still
+ * open the lot too, through the application's own `lot` source, which a link tries after this one.
+ *
+ * @param url The parking lots layer this map draws, which carries `FAC_CODE`.
+ */
+export function parkingLotLinkSource(url: string): SearchSource {
+  return {
+    source: 'parking-lot-link',
+    name: 'Parking Lot',
+    url,
+    queryParams: { where: { keys: ['FAC_CODE'], operators: ['='] } },
+    featuresLocation: 'features',
+    displayTemplate: 'Lot {attributes.FAC_CODE}',
+    searchActive: false,
+    urlQueryParam: 'lot',
+    urlQueryParamAliases: ['Lot']
+  } as SearchSource;
 }

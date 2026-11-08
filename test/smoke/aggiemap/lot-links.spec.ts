@@ -216,4 +216,27 @@ test.describe('lot links on the parking maps', () => {
 
     expect(opened.searchParams.get('feature')).toBe(feature);
   });
+
+  /**
+   * A lot's popup on AVP Parking copies `?lot=043`, which opens the same lot on every server (#2701).
+   *
+   * It copied `?feature=AVP-parking-lots:<objectId>`, and the two GIS servers numbered the same lots
+   * independently: Lot 043 is 26135 on production and 34694 on development, so a link copied on one opened
+   * nothing on the other. The copied link is opened again here, so it is checked to work, not only to read well.
+   */
+  test("AVP Parking's Lot 043 copies ?lot=043, the same on every server, not an object id", async ({ page }) => {
+    const path = '/parking/avp-parking/map?lot=043';
+    const { link: copied, heading } = await openedPopup(page, path);
+
+    expect(heading, `${path} did not open Lot 043`).toMatch(/Lot 043/);
+    expect(
+      copied.searchParams.get('feature'),
+      `${path} opened a popup that copies ${decodeURIComponent(copied.href)}, an object id this server alone uses`
+    ).toBeNull();
+    expect(copied.searchParams.get('lot'), `${path} copied ${decodeURIComponent(copied.href)}`).toBe('043');
+
+    const { heading: reopened } = await openedPopup(page, `${copied.pathname}${copied.search}`);
+
+    expect(reopened, `the copied ${decodeURIComponent(copied.href)} did not open Lot 043`).toMatch(/Lot 043/);
+  });
 });

@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 
 import { BaseDirectionsComponent } from '@tamu-gisc/aggiemap/ngx/popups';
 
+import { readableLinkIdentity } from '../../../services/event/feature-links';
 import { EventSettingsQuery } from '../../../services/settings/event-settings-query';
 
 import esri = __esri;
@@ -30,19 +31,11 @@ export abstract class BaseEventPopupComponent extends BaseDirectionsComponent {
    * selections stamped onto it, and the clearing of any stale feature parameter already in the URL.
    */
   protected _getShareUrlIdentity(): { param: string; value: string | number } | null {
-    const attributes = this.data?.attributes;
     const ownSources = this._eventSettingsService.eventConfiguration()?.configuration?.searchSources ?? [];
 
-    for (const source of ownSources) {
-      const field = source.queryParams?.where?.keys?.[0];
-      const value = field ? attributes?.[field] : undefined;
-
-      if (source.urlQueryParam && value !== undefined && value !== null && `${value}`.trim() !== '') {
-        return { param: source.urlQueryParam, value };
-      }
-    }
-
-    return null;
+    // Matched by a field's last part, as the link's own lookup matches it, so a parking service that names
+    // its lot number `GIS.TS.ParkingLots.FAC_CODE` copies `?lot=043` (#2701).
+    return readableLinkIdentity(this.data?.attributes, ownSources);
   }
 
   protected override _getShareUrlFragment(): string | null {

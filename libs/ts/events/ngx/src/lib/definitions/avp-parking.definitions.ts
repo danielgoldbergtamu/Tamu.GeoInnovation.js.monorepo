@@ -7,6 +7,7 @@ import {
   SpecialEventOptions
 } from '../interfaces/special-event.interface';
 import { EventPopups } from '../modules/popups/popups';
+import { parkingLotLinkSource } from './common.definitions';
 
 export enum AVP_PARKING_LAYERS {
   AVP_PARKING_LOTS = 'AVP-parking-lots'
@@ -55,7 +56,9 @@ export const AVPParkingConfiguration: EventConfiguration = {
   introductionText: 'Parking map for AVP permits.',
   eventDates: [],
   mapCenter: [-96.34731, 30.60543],
-  zoom: 16
+  zoom: 16,
+  // A lot's popup copies `?lot=043`, which opens the same lot on every server, not an object id (#2701).
+  searchSources: [parkingLotLinkSource(AVPParkingDefinitions.AVP_PARKING_LOTS.url)]
 };
 
 export const AVPParkingOptions: SpecialEventOptions = [];

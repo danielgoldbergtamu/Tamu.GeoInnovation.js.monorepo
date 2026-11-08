@@ -23,6 +23,7 @@ import {
   SpecialEventOptions
 } from '../../interfaces/special-event.interface';
 import { EventSettingsService } from '../settings/event-settings.service';
+import { fieldMatches } from './feature-links';
 
 import esri = __esri;
 
@@ -751,12 +752,12 @@ export class EventService {
 
       // A service that joins several tables names its fields by table - `GIS.TS.ParkingLots.LotName`,
       // not `LotName` - so a candidate matches a field's last dot-separated part, and the query below
-      // names the layer's own field. Compared whole, no field matched and a `?lot=` link opened nothing
-      // on fourteen parking maps (#1952).
+      // names the layer's own field (`fieldMatches`). Compared whole, no field matched and a `?lot=` link
+      // opened nothing on fourteen parking maps (#1952).
       const matches = candidateFields
         .map((candidate, priority) => ({
           priority,
-          fields: layerFields.filter((name) => name.split('.').pop() === candidate)
+          fields: layerFields.filter((name) => fieldMatches(name, candidate))
         }))
         .filter((match) => match.fields.length > 0);
 
