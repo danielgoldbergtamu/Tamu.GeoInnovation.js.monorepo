@@ -3,7 +3,9 @@
 // class still undefined.
 import '../services/settings/event-settings.service';
 
-import { AprilRingDayConfiguration, AprilRingDaySpecialEventOptions } from './april-ring-day.definitions';
+import { AprilRingDayConfiguration, AprilRingDayEvent, AprilRingDaySpecialEventOptions } from './april-ring-day.definitions';
+import { RingDayEvent } from './october-ring-day.definitions';
+import { NovemberRingDayEvent } from './november-ring-day.definitions';
 
 /**
  * April's Ring Day, held to what October's and November's are (#1230, #1688).
@@ -41,4 +43,26 @@ describe('April Ring Day', () => {
       expect(choice.mapView?.center).not.toEqual(AprilRingDayConfiguration.mapCenter);
     });
   }
+});
+
+/**
+ * April's Ring Day is listed as October's and November's are (#2768). It carried `visible: false` from the All Maps
+ * overhaul (#899) with no reason recorded, so it was in no listing on production while its two siblings were.
+ */
+describe('the April Ring Day listing (#2768)', () => {
+  it('is listed, as the other two Ring Days are', () => {
+    expect([AprilRingDayEvent, RingDayEvent, NovemberRingDayEvent].map((event) => event.discover?.visible ?? true)).toEqual([
+      true,
+      true,
+      true
+    ]);
+  });
+
+  it('is in the Spring column, beside October and November in Fall', () => {
+    expect([AprilRingDayEvent, RingDayEvent, NovemberRingDayEvent].map((event) => event.discover?.columnKey)).toEqual([
+      'spring',
+      'fall',
+      'fall'
+    ]);
+  });
 });

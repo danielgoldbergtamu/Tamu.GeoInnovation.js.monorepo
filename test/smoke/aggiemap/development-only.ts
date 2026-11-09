@@ -179,7 +179,6 @@ export const DEVELOPMENT_ONLY_SERVICES: Record<
  * listed here and no longer hidden fails too.
  */
 export const LISTINGS_HIDDEN_FROM_PRODUCTION: Record<string, string> = {
-  '/events/april-ring-day': 'hidden by #899 (All Maps overhaul, 5 August 2026) with no reason recorded; ask before listing it',
   '/events/move-out': '#1691, #1704: hidden while its three dated periods are reviewed, so the page offers one entry per move-out'
 };
 
