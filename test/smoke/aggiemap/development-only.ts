@@ -144,7 +144,7 @@ export const DEVELOPMENT_ONLY_SERVICES: Record<
   // development requests it from `/map` unprompted and production, which must not, is checked there.
   'Hosted/Micromobility_Map_WFL1_view/FeatureServer': {
     reason: '#2712, #2739: the Micromobility draft map, and its layers on the main map',
-    pages: ['/parking/micromobility', '/map']
+    pages: ['/transportation/micromobility', '/map']
   },
   // The NCAA Volleyball 1st & 2nd Round map (#2713), published on the development GIS server only and kept off
   // production by `developmentOnly` until Texas A&M is announced as a host on 29 November. Named on that server

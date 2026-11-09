@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { LayerSource } from '@tamu-gisc/common/types';
 import { DEVELOPMENT_ONLY_LAYER_SOURCES, factory } from '@tamu-gisc/aggiemap/ngx/common';
 import { EventDefinitions } from '@tamu-gisc/ts/events/ngx';
@@ -45,6 +48,13 @@ interface SuiteSide {
   services: Record<string, { pages: string[]; runTimeGate?: string }>;
   controls: Array<{ name: string; selector: string }>;
   hiddenForOtherReasons: Record<string, string>;
+  /**
+   * The addresses the smoke suite's development-only map check opens, expecting the main map on production
+   * (`development-only.spec.ts`, #2742, #2767). It covers every map `developmentOnly` marks, read from
+   * `declared-layers.generated.json`, so it asserts a map whose services production also reads for another map and
+   * so can never be on `DEVELOPMENT_ONLY_SERVICES`: Sustainable Transportation's TS/BikeMap is the main map's too.
+   */
+  checkedMaps: string[];
 }
 
 /** The route a control links to, when it is a link to a map: `a.map-entry[href="/map/d/bus"]` names `/map/d/bus`. */
@@ -67,9 +77,12 @@ function disagreements(build: BuildSide, suite: SuiteSide): string[] {
   }
 
   for (const map of build.developmentOnlyMaps) {
-    if (!servicesIn(map.urls).some(([, service]) => service.pages.includes(map.route))) {
+    const asserted =
+      suite.checkedMaps.includes(map.route) || servicesIn(map.urls).some(([, service]) => service.pages.includes(map.route));
+
+    if (!asserted) {
       problems.push(
-        `${map.route} is development-only, but no DEVELOPMENT_ONLY_SERVICES entry for its layers lists it in pages`
+        `${map.route} is development-only, but neither the smoke suite's development-only map check nor a DEVELOPMENT_ONLY_SERVICES entry for its layers opens it`
       );
     }
   }
@@ -77,6 +90,7 @@ function disagreements(build: BuildSide, suite: SuiteSide): string[] {
   for (const route of build.hiddenListings) {
     const asserted =
       services.some(([, service]) => service.pages.includes(route)) ||
+      suite.checkedMaps.includes(route) ||
       linkedRoutes.includes(route) ||
       route in suite.hiddenForOtherReasons;
 
@@ -153,10 +167,15 @@ function buildSide(): BuildSide {
   };
 }
 
+const DECLARED: Record<string, { address?: string }> = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '../../../../../../test/smoke/aggiemap/declared-layers.generated.json'), 'utf8')
+);
+
 const SUITE: SuiteSide = {
   services: DEVELOPMENT_ONLY_SERVICES,
   controls: DEVELOPMENT_ONLY_CONTROLS,
-  hiddenForOtherReasons: LISTINGS_HIDDEN_FROM_PRODUCTION
+  hiddenForOtherReasons: LISTINGS_HIDDEN_FROM_PRODUCTION,
+  checkedMaps: Object.values(DECLARED).flatMap((map) => (map.address ? [map.address] : []))
 };
 
 describe('development-only gates and the smoke suite agree (#2753)', () => {
@@ -169,7 +188,7 @@ describe('development-only gates and the smoke suite agree (#2753)', () => {
 
     expect(build.excludedLayers.map((layer) => layer.name)).toEqual(expect.arrayContaining(['NATURE_RX', 'MICROMOBILITY']));
     expect(build.developmentOnlyMaps.map((map) => map.route)).toEqual(
-      expect.arrayContaining(['/parking/micromobility', '/parking/ncaa-volleyball'])
+      expect.arrayContaining(['/transportation/micromobility', '/parking/ncaa-volleyball', '/transportation/sustainable-transportation'])
     );
   });
 });
@@ -181,8 +200,19 @@ describe('development-only gates and the smoke suite agree (#2753)', () => {
  */
 describe('the cross-check', () => {
   const none: BuildSide = { excludedLayers: [], developmentOnlyMaps: [], hiddenListings: [] };
-  const empty: SuiteSide = { services: {}, controls: [], hiddenForOtherReasons: {} };
+  const empty: SuiteSide = { services: {}, controls: [], hiddenForOtherReasons: {}, checkedMaps: [] };
   const busControl = { name: 'the bus map in the Transportation section', selector: 'a.map-entry[href="/map/d/bus"]' };
+
+  it("accepts a development-only map the smoke suite's map check opens, whose service is on no list (#2767)", () => {
+    const build: BuildSide = {
+      ...none,
+      developmentOnlyMaps: [{ route: '/transportation/sustainable-transportation', urls: ['https://example.com/TS/BikeMap/MapServer/1'] }],
+      hiddenListings: ['/transportation/sustainable-transportation']
+    };
+
+    expect(disagreements(build, { ...empty, checkedMaps: ['/transportation/sustainable-transportation'] })).toEqual([]);
+    expect(disagreements(build, empty)).toHaveLength(2);
+  });
 
   it('accepts a hidden listing asserted by a control linking to it, as the bus map is', () => {
     expect(disagreements({ ...none, hiddenListings: ['/map/d/bus'] }, { ...empty, controls: [busControl] })).toEqual([]);
