@@ -22,7 +22,8 @@ import * as football from './football-parking.definitions';
 const declared = Object.values(football)
   .filter((value): value is LayerSource[] => Array.isArray(value))
   .flat()
-  .filter((source) => source?.title === 'Football Parking Lots')
+  // By id: the lots take their name, Football Parking Lots, from the service (#2765), so no title finds them.
+  .filter((source) => source?.id?.endsWith('-parking-lots'))
   .map((source) => source.id);
 
 const subject = Object.create(EventSettingsService.prototype) as EventSettingsService;

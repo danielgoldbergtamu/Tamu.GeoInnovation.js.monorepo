@@ -84,7 +84,6 @@ export const SustainableTransportationColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SustainableTransportationDefinitions.BIKE_RACKS.id,
-    title: SustainableTransportationDefinitions.BIKE_RACKS.name,
     url: SustainableTransportationDefinitions.BIKE_RACKS.url,
     visible: true,
     listMode: 'show',
@@ -101,7 +100,6 @@ export const SustainableTransportationColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SustainableTransportationDefinitions.BIKE_FIX_STATIONS.id,
-    title: SustainableTransportationDefinitions.BIKE_FIX_STATIONS.name,
     url: SustainableTransportationDefinitions.BIKE_FIX_STATIONS.url,
     visible: true,
     listMode: 'show',
@@ -117,7 +115,6 @@ export const SustainableTransportationColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SustainableTransportationDefinitions.BIKE_LANES.id,
-    title: SustainableTransportationDefinitions.BIKE_LANES.name,
     url: SustainableTransportationDefinitions.BIKE_LANES.url,
     visible: true,
     listMode: 'show',
@@ -133,7 +130,6 @@ export const SustainableTransportationColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SustainableTransportationDefinitions.CITY_BIKE_LANES_ROUTES.id,
-    title: SustainableTransportationDefinitions.CITY_BIKE_LANES_ROUTES.name,
     url: SustainableTransportationDefinitions.CITY_BIKE_LANES_ROUTES.url,
     visible: true,
     listMode: 'show',
@@ -149,7 +145,6 @@ export const SustainableTransportationColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SustainableTransportationDefinitions.BIKE_DISMOUNT_ZONES.id,
-    title: SustainableTransportationDefinitions.BIKE_DISMOUNT_ZONES.name,
     url: SustainableTransportationDefinitions.BIKE_DISMOUNT_ZONES.url,
     visible: true,
     listMode: 'show',

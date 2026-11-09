@@ -123,7 +123,6 @@ export const ConstructionMapColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: ConstructionMapDefinitions.PLANNED_CONSTRUCTION_AREA.id,
-    title: ConstructionMapDefinitions.PLANNED_CONSTRUCTION_AREA.name,
     url: ConstructionMapDefinitions.PLANNED_CONSTRUCTION_AREA.url,
     visible: true,
     listMode: 'show',
@@ -134,7 +133,6 @@ export const ConstructionMapColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: ConstructionMapDefinitions.CURRENT_CONSTRUCTION_AREA.id,
-    title: ConstructionMapDefinitions.CURRENT_CONSTRUCTION_AREA.name,
     url: ConstructionMapDefinitions.CURRENT_CONSTRUCTION_AREA.url,
     visible: true,
     listMode: 'show',

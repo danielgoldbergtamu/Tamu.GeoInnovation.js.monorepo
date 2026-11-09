@@ -32,7 +32,6 @@ export const FortWorthLawLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FORT_WORTH_LAW_LAYERS.CONSTRUCTION,
-    title: 'Construction',
     url: `${Connections.fortWorthLawFeatureServerUrl}/1`,
     listMode: 'hide',
     visible: true,

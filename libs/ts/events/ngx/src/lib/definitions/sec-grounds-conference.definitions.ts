@@ -247,7 +247,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY1_ROUTES,
-    title: 'Day 1 Routes',
     url: eventUrl + '/2',
     visible: true,
     listMode: 'show',
@@ -256,7 +255,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY1_POIS,
-    title: 'Day 1 Points of Interest',
     url: eventUrl + '/1',
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -272,7 +270,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY2_ROUTES,
-    title: 'Day 2 Routes',
     url: eventUrl + '/5',
     visible: true,
     listMode: 'show',
@@ -281,7 +278,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY2_POIS,
-    title: 'Day 2 Points of Interest',
     url: eventUrl + '/4',
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -295,7 +291,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY3_ROUTES,
-    title: 'Day 3 Routes',
     url: eventUrl + '/8',
     visible: true,
     listMode: 'show',
@@ -304,7 +299,6 @@ export const SecGroundsColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SEC_GROUNDS_LAYERS.DAY3_POIS,
-    title: 'Day 3 Points of Interest',
     url: eventUrl + '/7',
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {

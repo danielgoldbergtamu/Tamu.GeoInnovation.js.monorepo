@@ -131,7 +131,6 @@ function buildPhaseChildren(
     {
       type: 'feature',
       id: ids.parkingLots,
-      title: 'Parking Lots',
       url: `${fishCampUrl}/${indexes.parkingLots}`,
       visible: true,
       listMode: 'show',
@@ -143,7 +142,6 @@ function buildPhaseChildren(
     {
       type: 'feature',
       id: ids.routes,
-      title: 'Routes',
       url: `${fishCampUrl}/${indexes.routes}`,
       visible: true,
       listMode: 'show',
@@ -153,7 +151,6 @@ function buildPhaseChildren(
     {
       type: 'feature',
       id: ids.parkingInfo,
-      title: 'Parking Information',
       url: `${fishCampUrl}/${indexes.parkingInfo}`,
       visible: true,
       listMode: 'show',

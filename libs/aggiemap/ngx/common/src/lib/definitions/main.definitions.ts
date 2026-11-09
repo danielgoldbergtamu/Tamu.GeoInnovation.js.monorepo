@@ -366,7 +366,6 @@ export function MainMapLayerSources(
       // labels render, so each reserved/numbered space shows its number when zoomed in.
       type: 'feature',
       id: definitions.RNS_SPACES.layerId,
-      title: definitions.RNS_SPACES.name,
       url: definitions.RNS_SPACES.url,
       listMode: 'hide',
       // Off: it draws nothing (see minScale below), and on ArcGIS 5.1 its view never stops updating
@@ -442,7 +441,6 @@ export function MainMapLayerSources(
         {
           type: 'feature',
           id: definitions.BIKE_DISMOUNT_ZONES.layerId,
-          title: definitions.BIKE_DISMOUNT_ZONES.name,
           url: definitions.BIKE_DISMOUNT_ZONES.url,
           listMode: 'show',
           visible: true,
@@ -458,7 +456,6 @@ export function MainMapLayerSources(
         {
           type: 'feature',
           id: definitions.CITY_BIKE_LANES_ROUTES.layerId,
-          title: definitions.CITY_BIKE_LANES_ROUTES.name,
           url: definitions.CITY_BIKE_LANES_ROUTES.url,
           listMode: 'show',
           visible: true,
@@ -474,7 +471,6 @@ export function MainMapLayerSources(
         {
           type: 'feature',
           id: definitions.CAMPUS_BIKE_LANES.layerId,
-          title: definitions.CAMPUS_BIKE_LANES.name,
           url: definitions.CAMPUS_BIKE_LANES.url,
           listMode: 'show',
           visible: true,
@@ -490,7 +486,6 @@ export function MainMapLayerSources(
         {
           type: 'feature',
           id: definitions.BIKE_FIX_STATIONS.layerId,
-          title: definitions.BIKE_FIX_STATIONS.name,
           url: definitions.BIKE_FIX_STATIONS.url,
           listMode: 'show',
           visible: true,
@@ -506,7 +501,6 @@ export function MainMapLayerSources(
         {
           type: 'feature',
           id: definitions.BIKE_RACKS_MAP.layerId,
-          title: definitions.BIKE_RACKS_MAP.name,
           url: definitions.BIKE_RACKS_MAP.url,
           listMode: 'show',
           visible: true,

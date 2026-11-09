@@ -64,7 +64,6 @@ export const RingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: RingDayEventDefinitions.RD_AREAS.id,
-    title: RingDayEventDefinitions.RD_AREAS.name,
     url: RingDayEventDefinitions.RD_AREAS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -80,7 +79,6 @@ export const RingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: RingDayEventDefinitions.RD_ROUTES.id,
-    title: RingDayEventDefinitions.RD_ROUTES.name,
     url: RingDayEventDefinitions.RD_ROUTES.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -96,7 +94,6 @@ export const RingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: RingDayEventDefinitions.RD_POIS.id,
-    title: RingDayEventDefinitions.RD_POIS.name,
     url: RingDayEventDefinitions.RD_POIS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {

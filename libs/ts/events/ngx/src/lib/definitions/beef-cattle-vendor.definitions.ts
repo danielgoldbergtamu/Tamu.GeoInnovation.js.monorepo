@@ -45,7 +45,6 @@ export const BeefCattleColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: BEEF_CATTLE_LAYERS.ZONES,
-    title: 'Zones',
     url: `${beefCattleUrl}/2`,
     visible: true,
     listMode: 'show',
@@ -61,7 +60,6 @@ export const BeefCattleColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: BEEF_CATTLE_LAYERS.NO_PARKING_ZONES,
-    title: 'No Parking Zones',
     url: `${beefCattleUrl}/3`,
     visible: true,
     listMode: 'show',
@@ -83,7 +81,6 @@ export const BeefCattleColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: BEEF_CATTLE_LAYERS.ROUTES,
-    title: 'Routes',
     url: `${beefCattleUrl}/1`,
     visible: true,
     listMode: 'show',

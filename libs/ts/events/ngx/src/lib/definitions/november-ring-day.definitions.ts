@@ -64,7 +64,6 @@ export const NovemberRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: NovemberRingDayEventDefinitions.RD_AREAS.id,
-    title: NovemberRingDayEventDefinitions.RD_AREAS.name,
     url: NovemberRingDayEventDefinitions.RD_AREAS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -80,7 +79,6 @@ export const NovemberRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: NovemberRingDayEventDefinitions.RD_ROUTES.id,
-    title: NovemberRingDayEventDefinitions.RD_ROUTES.name,
     url: NovemberRingDayEventDefinitions.RD_ROUTES.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -96,7 +94,6 @@ export const NovemberRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: NovemberRingDayEventDefinitions.RD_POIS.id,
-    title: NovemberRingDayEventDefinitions.RD_POIS.name,
     url: NovemberRingDayEventDefinitions.RD_POIS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {

@@ -64,7 +64,6 @@ export const AprilRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: AprilRingDayEventDefinitions.RD_AREAS.id,
-    title: AprilRingDayEventDefinitions.RD_AREAS.name,
     url: AprilRingDayEventDefinitions.RD_AREAS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -80,7 +79,6 @@ export const AprilRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: AprilRingDayEventDefinitions.RD_ROUTES.id,
-    title: AprilRingDayEventDefinitions.RD_ROUTES.name,
     url: AprilRingDayEventDefinitions.RD_ROUTES.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -96,7 +94,6 @@ export const AprilRingDayColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: AprilRingDayEventDefinitions.RD_POIS.id,
-    title: AprilRingDayEventDefinitions.RD_POIS.name,
     url: AprilRingDayEventDefinitions.RD_POIS.url,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {

@@ -53,7 +53,6 @@ export const TCampColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: T_CAMP_LAYERS.CLOSURES,
-    title: 'Closures',
     url: `${tCampUrl}/2`,
     visible: true,
     listMode: 'show',
@@ -68,7 +67,6 @@ export const TCampColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: T_CAMP_LAYERS.PARKING,
-    title: 'Parking',
     url: `${tCampUrl}/3`,
     visible: true,
     listMode: 'show',
@@ -81,7 +79,6 @@ export const TCampColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: T_CAMP_LAYERS.ENTRY_ROUTE,
-    title: 'Entry Route',
     url: `${tCampUrl}/1`,
     visible: true,
     listMode: 'show',
@@ -91,7 +88,6 @@ export const TCampColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: T_CAMP_LAYERS.CAMPUS_LOCATIONS,
-    title: 'Campus Locations',
     url: `${tCampUrl}/0`,
     visible: true,
     listMode: 'show',

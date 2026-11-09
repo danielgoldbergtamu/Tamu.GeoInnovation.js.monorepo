@@ -85,7 +85,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.ARRIVAL_PARKING.id,
-        title: HsGraduationEventDefinitions.ARRIVAL_PARKING.name,
         url: HsGraduationEventDefinitions.ARRIVAL_PARKING.url,
         popupComponent: EventPopups.MarkdownWDirectionsPopupComponent,
         popupData: {
@@ -101,7 +100,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.ARRIVAL_ROUTES.id,
-        title: HsGraduationEventDefinitions.ARRIVAL_ROUTES.name,
         url: HsGraduationEventDefinitions.ARRIVAL_ROUTES.url,
         popupComponent: EventPopups.MarkdownPopupComponent,
         popupData: {
@@ -135,7 +133,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.ACCESSIBLE_BUS_PARKING.id,
-        title: HsGraduationEventDefinitions.ACCESSIBLE_BUS_PARKING.name,
         url: HsGraduationEventDefinitions.ACCESSIBLE_BUS_PARKING.url,
         popupComponent: EventPopups.MarkdownWDirectionsPopupComponent,
         popupData: {
@@ -163,7 +160,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.DEPARTURE_PARKING.id,
-        title: HsGraduationEventDefinitions.DEPARTURE_PARKING.name,
         url: HsGraduationEventDefinitions.DEPARTURE_PARKING.url,
         popupComponent: EventPopups.MarkdownWDirectionsPopupComponent,
         popupData: {
@@ -179,7 +175,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.TRAFFIC_ADVISORIES.id,
-        title: HsGraduationEventDefinitions.TRAFFIC_ADVISORIES.name,
         url: HsGraduationEventDefinitions.TRAFFIC_ADVISORIES.url,
         popupComponent: EventPopups.MarkdownWDirectionsPopupComponent,
         popupData: {
@@ -195,7 +190,6 @@ export const HsGraduationColdLayerSources: LayerSource[] = [
       {
         type: 'feature',
         id: HsGraduationEventDefinitions.DEPARTURE_ROUTES.id,
-        title: HsGraduationEventDefinitions.DEPARTURE_ROUTES.name,
         url: HsGraduationEventDefinitions.DEPARTURE_ROUTES.url,
         popupComponent: EventPopups.MarkdownPopupComponent,
         popupData: {

@@ -503,7 +503,6 @@ const vehicleModeSources = (mode: VehicleMode): LayerSource[] => {
         {
           type: 'feature',
           id: mode.layers.entryRoutes,
-          title: 'Entry Routes',
           url: `${mode.entryUrl}/${VEHICLE_LAYER_INDEX.ENTRY_ROUTES}`,
           popupComponent: EventPopups.MarkdownPopupComponent,
           popupData: {
@@ -519,7 +518,6 @@ const vehicleModeSources = (mode: VehicleMode): LayerSource[] => {
     {
       type: 'feature',
       id: mode.layers.gamedayParking,
-      title: 'Gameday Parking',
       url: `${mode.entryUrl}/${VEHICLE_LAYER_INDEX.GAMEDAY_PARKING}`,
       popupComponent: EventPopups.MarkdownPopupComponent,
       popupData: {
@@ -533,7 +531,6 @@ const vehicleModeSources = (mode: VehicleMode): LayerSource[] => {
     {
       type: 'feature',
       id: mode.layers.exitRoutes,
-      title: 'Exit Routes',
       url: `${mode.exitUrl}/${VEHICLE_LAYER_INDEX.EXIT_ROUTES}`,
       popupComponent: EventPopups.MarkdownPopupComponent,
       popupData: {
@@ -557,7 +554,6 @@ const vehicleModeSources = (mode: VehicleMode): LayerSource[] => {
     {
       type: 'feature',
       id: mode.layers.lots,
-      title: 'Football Parking Lots',
       url: `${mode.entryUrl}/${VEHICLE_LAYER_INDEX.LOTS}`,
       popupComponent: EventPopups.MarkdownPopupComponent,
       popupData: {
@@ -576,7 +572,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_RIDESHARE_LOCATIONS,
-    title: 'Rideshare Locations',
     url: `${HOSTED_ROOT}/RS_view/FeatureServer/0`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -591,7 +586,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_SHUTTLE_STOPS,
-    title: 'Campus Shuttle Stops',
     url: `${HOSTED_ROOT}/Football_Shuttle_View/FeatureServer/5`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -603,7 +597,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_SHUTTLE_ROUTES,
-    title: 'Shuttle Routes',
     url: `${HOSTED_ROOT}/Football_Shuttle_View/FeatureServer/6`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -616,7 +609,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_RV_GAMEDAY_PARKING,
-    title: 'Gameday Parking',
     url: `${HOSTED_ROOT}/RV_view/FeatureServer/0`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -629,7 +621,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_RV_RNS_SPACES,
-    title: 'RNS Spaces',
     url: `${HOSTED_ROOT}/RV_view/FeatureServer/2`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -641,7 +632,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_RV_STRIPES,
-    title: 'Stripes',
     url: `${HOSTED_ROOT}/RV_view/FeatureServer/1`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -665,7 +655,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_RV_PARKING_LOTS,
-    title: 'Football Parking Lots',
     url: `${HOSTED_ROOT}/RV_view/FeatureServer/4`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -690,7 +679,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_MICROMOBILITY_PARKING,
-    title: 'Micromobility Parking Area',
     url: `${HOSTED_ROOT}/FBike_entry/FeatureServer/0`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -705,7 +693,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
     // it, so arriving cyclists were shown parking and dismount zones and no way to reach them (#996).
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_MICROMOBILITY_ENTRY_ROUTES,
-    title: 'Entry Routes',
     url: `${HOSTED_ROOT}/FBike_entry/FeatureServer/1`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -717,7 +704,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_MICROMOBILITY_EXIT_ROUTES,
-    title: 'Exit Routes',
     url: `${HOSTED_ROOT}/FBike_exit/FeatureServer/2`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -729,7 +715,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_BIKE_DISMOUNT_ZONES,
-    title: 'Bike Dismount Zones',
     url: `${HOSTED_ROOT}/FBike_entry/FeatureServer/3`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -741,7 +726,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_BIKE_VEO_GEOFENCE,
-    title: 'Bike Veo Geofence',
     url: `${HOSTED_ROOT}/FBike_entry/FeatureServer/4`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {
@@ -758,7 +742,6 @@ export const FootballParkingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FOOTBALL_PARKING_LAYERS.FP_PEDESTRIAN_EXIT_ROUTES,
-    title: 'Exit Routes',
     url: `${HOSTED_ROOT}/Football_Pedestrian_Exit/FeatureServer/3`,
     popupComponent: EventPopups.MarkdownPopupComponent,
     popupData: {

@@ -37,7 +37,6 @@ export const SummerCommencementColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: SummerCommencementEventDefinitions.TRAFFIC_FLOW.id,
-    title: SummerCommencementEventDefinitions.TRAFFIC_FLOW.name,
     url: SummerCommencementEventDefinitions.TRAFFIC_FLOW.url,
     visible: true,
     listMode: 'show',

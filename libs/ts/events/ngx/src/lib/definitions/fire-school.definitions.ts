@@ -35,7 +35,6 @@ export const FireSchoolColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FIRE_SCHOOL_LAYERS.PREFERRED_ROUTE,
-    title: 'Preferred Route',
     url: `${fireSchoolUrl}/0`,
     visible: true,
     listMode: 'show',
@@ -49,7 +48,6 @@ export const FireSchoolColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FIRE_SCHOOL_LAYERS.ROAD_CLOSURES,
-    title: 'Road Closures',
     url: `${fireSchoolUrl}/1`,
     visible: true,
     listMode: 'show',
@@ -71,7 +69,6 @@ export const FireSchoolColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: FIRE_SCHOOL_LAYERS.PARKING_LOTS,
-    title: 'Parking Lots',
     url: `${fireSchoolUrl}/2`,
     visible: true,
     listMode: 'show',

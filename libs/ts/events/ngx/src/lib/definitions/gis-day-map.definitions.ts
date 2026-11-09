@@ -54,7 +54,6 @@ export const GisDayLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: GIS_DAY_LAYERS.CSG,
-    title: 'Gene Stallings Parking Garage',
     url: CSG_URL,
     popupComponent: EventPopups.MarkdownWDirectionsPopupComponent,
     popupData: {

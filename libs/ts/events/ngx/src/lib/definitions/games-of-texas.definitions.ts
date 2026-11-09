@@ -52,7 +52,6 @@ export const GamesOfTexasColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: GAMES_OF_TEXAS_LAYERS.PARKING,
-    title: 'Parking',
     url: `${gamesOfTexasUrl}/3`,
     visible: true,
     listMode: 'show',
@@ -64,7 +63,6 @@ export const GamesOfTexasColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: GAMES_OF_TEXAS_LAYERS.ROAD_CLOSURES,
-    title: 'Road Closures',
     url: `${gamesOfTexasUrl}/2`,
     visible: true,
     listMode: 'show',
@@ -82,7 +80,6 @@ export const GamesOfTexasColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: GAMES_OF_TEXAS_LAYERS.ROUTES,
-    title: 'Routes',
     url: `${gamesOfTexasUrl}/1`,
     visible: true,
     listMode: 'show',
@@ -92,7 +89,6 @@ export const GamesOfTexasColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: GAMES_OF_TEXAS_LAYERS.POINTS_OF_INTEREST,
-    title: 'Points of Interest',
     url: `${gamesOfTexasUrl}/0`,
     visible: true,
     listMode: 'show',

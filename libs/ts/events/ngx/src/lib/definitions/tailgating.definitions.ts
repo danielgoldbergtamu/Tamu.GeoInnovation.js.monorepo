@@ -178,7 +178,6 @@ export const TailgatingColdLayerSources: LayerSource[] = [
   {
     type: 'feature',
     id: TAILGATING_LAYERS.ZONE_NUMBERS,
-    title: 'Zone Numbers',
     url: `${TAILGATE_ZONES_URL}/${TAILGATE_ZONES_LAYER_INDEX.ZONE_NUMBERS}`,
     listMode: 'show',
     visible: true,

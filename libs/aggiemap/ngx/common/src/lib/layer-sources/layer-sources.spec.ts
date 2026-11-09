@@ -233,14 +233,9 @@ describe('LayerSources', () => {
     const childIds = childSources.map((layer) => layer.id);
 
     expect(sustainableTransportationGroup?.type).toBe('group');
-    expect(childTitles).toEqual([
-      'Bike Dismount Zones',
-      'City Bike Lanes and Routes',
-      'Campus Bike Lanes',
-      'Bike Fix Stations',
-      'Bike Racks',
-      'EV Charge Stations'
-    ]);
+    // Five take the name their service publishes, so they declare none (#2765); EV Charge Stations keeps its own,
+    // which adds the campuses its service's name leaves out.
+    expect(childTitles).toEqual([undefined, undefined, undefined, undefined, undefined, 'EV Charge Stations']);
     expect(childIds).toEqual(
       expect.arrayContaining([
         'bike-dismount-zones',

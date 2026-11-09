@@ -68,11 +68,18 @@ describe('football micromobility layers', () => {
   });
 
   it('names each layer as its service names it', () => {
-    expect(byId('football-micromobility-parking')?.title).toBe('Micromobility Parking Area');
-    expect(byId('football-micromobility-entry-routes')?.title).toBe('Entry Routes');
-    expect(byId('football-micromobility-exit-routes')?.title).toBe('Exit Routes');
-    expect(byId('football-bike-dismount-zones')?.title).toBe('Bike Dismount Zones');
-    expect(byId('football-bike-veo-geofence')?.title).toBe('Bike Veo Geofence');
+    // Micromobility Parking Area, Entry Routes, Exit Routes, Bike Dismount Zones and Bike Veo Geofence: each the name
+    // its service publishes, so none is declared here, and a rename upstream reaches the map (#2765).
+    const ids = [
+      'football-micromobility-parking',
+      'football-micromobility-entry-routes',
+      'football-micromobility-exit-routes',
+      'football-bike-dismount-zones',
+      'football-bike-veo-geofence'
+    ];
+
+    expect(ids.map((id) => byId(id) !== undefined)).toEqual(ids.map(() => true));
+    expect(ids.map((id) => byId(id)?.title)).toEqual(ids.map(() => undefined));
   });
 
   it('carries no renderer of its own, so the services decide how these draw', () => {
