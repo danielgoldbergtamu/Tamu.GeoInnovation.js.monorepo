@@ -38,48 +38,63 @@ async function probeReady(page: Page): Promise<boolean> {
   );
 }
 
+/**
+ * The maps whose sidebars are checked: the main map's, and an event map's, which every event, parking and campus map
+ * shares. The two drew their tabs from separate lists until #2758, and drifted: no event map offered Bus Routes. They
+ * now draw one list (`sidebar-tabs.ts`), and a unit spec compares them; these check what each environment serves.
+ */
+const SIDEBAR_MAPS = ['/map', '/events/mens-basketball'];
+
 test.describe(`development-only sections ${VISIBLE ? 'are offered here' : 'stay off this environment'}`, () => {
   for (const section of DEVELOPMENT_ONLY_SECTIONS) {
-    test(`the ${section} tab ${VISIBLE ? 'is offered' : 'is not offered'}`, async ({ page }) => {
-      await blockAnalytics(page);
-      await page.goto('/map');
+    for (const mapPath of SIDEBAR_MAPS) {
+      test(`${mapPath}: the ${section} tab ${VISIBLE ? 'is offered' : 'is not offered'}`, async ({ page }) => {
+        await blockAnalytics(page);
+        await page.goto(mapPath);
 
-      await expect
-        .poll(
-          async () =>
-            await page.evaluate(
-              (name) => (window as unknown as Record<string, { ready?: boolean }>)[name]?.ready === true,
-              PROBE_GLOBAL
-            ),
-          { message: 'the main map never finished loading', timeout: 90_000, intervals: [1_000] }
-        )
-        .toBe(true);
+        await expect
+          .poll(
+            async () =>
+              await page.evaluate(
+                (name) => (window as unknown as Record<string, { ready?: boolean }>)[name]?.ready === true,
+                PROBE_GLOBAL
+              ),
+            { message: `the map at ${mapPath} never finished loading`, timeout: 90_000, intervals: [1_000] }
+          )
+          .toBe(true);
 
-      const count = await sidebarTabs(page, section);
+        const count = await sidebarTabs(page, section);
 
-      expect(
-        count,
-        VISIBLE
-          ? `the ${section} tab should be offered here`
-          : `the ${section} tab is offered on an environment that should not have it`
-      ).toBe(VISIBLE ? 1 : 0);
-    });
+        expect(
+          count,
+          VISIBLE
+            ? `the ${section} tab should be offered here`
+            : `the ${section} tab is offered on an environment that should not have it`
+        ).toBe(VISIBLE ? 1 : 0);
+      });
+    }
   }
 });
 
 /** Sections that left development for every environment are offered on every environment (#2789). */
 test.describe('sections on every environment are offered here', () => {
   for (const section of SECTIONS_ON_EVERY_ENVIRONMENT) {
-    test(`the ${section} tab is offered`, async ({ page }) => {
-      await blockAnalytics(page);
-      await page.goto('/map');
+    for (const mapPath of SIDEBAR_MAPS) {
+      test(`${mapPath}: the ${section} tab is offered`, async ({ page }) => {
+        await blockAnalytics(page);
+        await page.goto(mapPath);
 
-      await expect
-        .poll(async () => probeReady(page), { message: 'the main map never finished loading', timeout: 90_000, intervals: [1_000] })
-        .toBe(true);
+        await expect
+          .poll(async () => probeReady(page), {
+            message: `the map at ${mapPath} never finished loading`,
+            timeout: 90_000,
+            intervals: [1_000]
+          })
+          .toBe(true);
 
-      expect(await sidebarTabs(page, section), `the ${section} tab is not offered here`).toBe(1);
-    });
+        expect(await sidebarTabs(page, section), `the ${section} tab is not offered on ${mapPath}`).toBe(1);
+      });
+    }
   }
 });
 
@@ -120,9 +135,7 @@ test.describe(`development-only pages ${VISIBLE ? 'open here' : 'go to the page 
       await blockAnalytics(page);
       await page.goto(address);
 
-      await expect
-        .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
-        .toBe(VISIBLE ? address : above);
+      await expect.poll(() => new URL(page.url()).pathname, { timeout: 30_000 }).toBe(VISIBLE ? address : above);
     });
   }
 });
@@ -158,9 +171,7 @@ test.describe(`development-only services ${VISIBLE ? 'are used here' : 'are neve
       // that must request none of them.
       await page.goto(path);
 
-      for (const [service, { reason, pages: usedOn, developmentGisServer }] of Object.entries(
-        DEVELOPMENT_ONLY_SERVICES
-      )) {
+      for (const [service, { reason, pages: usedOn, developmentGisServer }] of Object.entries(DEVELOPMENT_ONLY_SERVICES)) {
         if (VISIBLE && !usedOn.includes(path)) {
           continue;
         }
@@ -279,7 +290,6 @@ test.describe(`development-only map controls ${VISIBLE ? 'are offered here' : 's
     });
   }
 });
-
 
 /**
  * `?as=production` makes a development host behave as production, for the tab (#1722).

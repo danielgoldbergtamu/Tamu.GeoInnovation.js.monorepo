@@ -1,7 +1,11 @@
 import { Routes } from '@angular/router';
 
-import { ModalComponent, ReportBadRouteComponent } from '@tamu-gisc/aggiemap/ngx/ui/shared';
-import { SidebarSettingsComponent, SidebarTripPlannerComponent } from '@tamu-gisc/aggiemap/ngx/ui/desktop';
+import { ModalComponent, ReportBadRouteComponent, ExperimentsListComponent } from '@tamu-gisc/aggiemap/ngx/ui/shared';
+import {
+  SidebarBusListComponent,
+  SidebarSettingsComponent,
+  SidebarTripPlannerComponent
+} from '@tamu-gisc/aggiemap/ngx/ui/desktop';
 import {
   OmnisearchComponent,
   loadTripPlannerBottomComponent,
@@ -51,8 +55,11 @@ export const mapRoutes: Routes = [
         canActivateChild: [DesktopGuard],
         children: [
           { path: '', component: SidebarReferenceComponent },
+          // The tabs are the main map's (#2758), so the routes they open are too.
+          { path: 'bus', component: SidebarBusListComponent },
           { path: 'trip', component: SidebarTripPlannerComponent },
           { path: 'trip/options', loadComponent: loadTripPlannerOptionsComponent },
+          { path: 'experiments', component: ExperimentsListComponent },
           { path: 'settings', component: SidebarSettingsComponent }
         ]
       },

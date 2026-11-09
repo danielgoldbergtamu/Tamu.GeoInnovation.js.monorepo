@@ -34,6 +34,13 @@ const BASE_URL = smokeBaseUrl();
 const PROBE_GLOBAL = '__tamuGiscMapProbe';
 const BUS_LAYER = 'bus-route-layer';
 
+/**
+ * The bus panel on an event map, which has offered it since #2758. The bus service was the application's, bound to the main
+ * map's view, so on an event map choosing a route drew nothing until it was given its own. A map with no builder, so the
+ * link opens it directly.
+ */
+const EVENT_BUS_PANEL = '/events/mens-basketball/map/d/bus';
+
 interface EnvironmentSettings {
   baseUrl: string;
   allowedBusRouteFailures?: Record<string, string>;
@@ -68,10 +75,10 @@ async function drawn(page: Page): Promise<Drawn> {
   return { route: types['route'] ?? 0, waypoints: types['waypoints'] ?? 0 };
 }
 
-/** Opens the bus panel and returns its routes, or skips where bus routes are not offered. */
-async function openBusPanel(page: Page): Promise<Locator> {
+/** Opens a bus panel, the main map's unless told otherwise, and returns its routes. */
+async function openBusPanel(page: Page, panel = BUS_PANEL): Promise<Locator> {
   await blockAnalytics(page);
-  await page.goto(BUS_PANEL);
+  await page.goto(panel);
 
   await expect
     .poll(
@@ -80,7 +87,7 @@ async function openBusPanel(page: Page): Promise<Locator> {
           (name) => (window as unknown as Record<string, { ready?: boolean }>)[name]?.ready === true,
           PROBE_GLOBAL
         ),
-      { message: 'the main map never finished loading', timeout: 90_000, intervals: [1_000] }
+      { message: `the map at ${panel} never finished loading`, timeout: 90_000, intervals: [1_000] }
     )
     .toBe(true);
 
@@ -131,23 +138,27 @@ async function unchoose(page: Page, route: Locator): Promise<void> {
 }
 
 test.describe('bus routes', () => {
-  test('choosing a route expands it, lists its stops and draws them; choosing it again removes them', async ({ page }) => {
-    const routes = await openBusPanel(page);
+  for (const panel of [BUS_PANEL, EVENT_BUS_PANEL]) {
+    test(`${panel}: choosing a route expands it, lists its stops and draws them; choosing it again removes them`, async ({
+      page
+    }) => {
+      const routes = await openBusPanel(page, panel);
 
-    // A route whose stops are known to draw, so this checks the interaction rather than #1174's data.
-    const route = routes.filter({ has: page.locator('.route-number', { hasText: /^\s*01\s*$/ }) });
-    await expect(route, 'route 01 is not listed').toHaveCount(1);
+      // A route whose stops are known to draw, so this checks the interaction rather than #1174's data.
+      const route = routes.filter({ has: page.locator('.route-number', { hasText: /^\s*01\s*$/ }) });
+      await expect(route, 'route 01 is not listed').toHaveCount(1);
 
-    const stops = await choose(page, route);
+      const stops = await choose(page, route);
 
-    expect(stops.length, 'route 01 listed no stops').toBeGreaterThan(0);
-    await expect
-      .poll(async () => (await drawn(page)).waypoints, { message: "route 01's stops were not drawn", timeout: 30_000 })
-      .toBeGreaterThan(0);
+      expect(stops.length, 'route 01 listed no stops').toBeGreaterThan(0);
+      await expect
+        .poll(async () => (await drawn(page)).waypoints, { message: "route 01's stops were not drawn", timeout: 30_000 })
+        .toBeGreaterThan(0);
 
-    await unchoose(page, route);
-    await expect(route.locator('.stops-list li'), 'choosing route 01 again did not collapse it').toHaveCount(0);
-  });
+      await unchoose(page, route);
+      await expect(route.locator('.stops-list li'), 'choosing route 01 again did not collapse it').toHaveCount(0);
+    });
+  }
 });
 
 /**

@@ -13,6 +13,7 @@ import { SidebarComponent } from '@tamu-gisc/common/ngx/ui/sidebar';
 import { SidebarTabComponent } from '@tamu-gisc/common/ngx/ui/sidebar';
 import { PopupComponent } from '@tamu-gisc/maps/feature/popup';
 import { RevealSidebarOnPopupDirective } from '@tamu-gisc/maps/feature/popup';
+import { AGGIEMAP_SIDEBAR_TABS, AggiemapSidebarTab } from '@tamu-gisc/aggiemap/ngx/ui/desktop';
 
 @Component({
   selector: 'tamu-gisc-movein-sidebar',
@@ -34,7 +35,10 @@ export class MoveInOutSidebarComponent implements OnInit {
 
   public configuration: EventConfiguration | null;
 
-  /** Development and localhost only; gates the Directions tab while routing is unpublished (#1003). */
+  /** The main map's tabs (#2758). */
+  public readonly tabs = AGGIEMAP_SIDEBAR_TABS;
+
+  /** Development and localhost only; gates the development-only tabs, as on the main map. */
   public isDev: Observable<boolean>;
 
   constructor() {
@@ -49,7 +53,7 @@ export class MoveInOutSidebarComponent implements OnInit {
    * Whether the given tab should render. Falls back to showing every tab when `sidebarTabs` is
    * omitted, preserving existing behavior for maps that don't restrict their tabs.
    */
-  public showTab(tab: 'features' | 'directions' | 'settings'): boolean {
+  public showTab(tab: AggiemapSidebarTab['id']): boolean {
     return !this.configuration?.sidebarTabs || this.configuration.sidebarTabs.includes(tab);
   }
 }

@@ -6,23 +6,10 @@ We are injecting application-specific sidebar tabs and content -->
 swallows it and clicking a feature appears to do nothing (#1244). -->
 <tamu-gisc-sidebar [position]="'right'" tamuGiscRevealSidebarOnPopup>
   <div class="tabs left">
-    <tamu-gisc-sidebar-tab [title]="'Features'" [description]="'Toggle Features (Search, Layers, Legend)'" [material_icon]="'menu'" [route]="''" (click)="reportSidebarContent('Features')"></tamu-gisc-sidebar-tab>
-
-    <!-- Development-only while routing is unpublished (#1003). -->
-    @if ((isDev | async) === true) {
-    <tamu-gisc-sidebar-tab [title]="'Directions'" [description]="'Toggle directions controls (routing and way-finding)'" [material_icon]="'directions'" [route]="'trip'" (click)="reportSidebarContent('Directions')"></tamu-gisc-sidebar-tab>
-    }
-
-    <!--
-    On every environment since #2789 (the maintainer, 9 November 2026). It was development-only until then (#1090,
-    #1229); the smoke suite's `SECTIONS_ON_EVERY_ENVIRONMENT` now fails if it is gated again.
-    -->
-    <tamu-gisc-sidebar-tab [title]="'Bus Routes'" [description]="'Toggle bus controls (list and timetable)'" [material_icon]="'directions_bus'" [route]="'bus'" (click)="reportSidebarContent('Bus Routes')"></tamu-gisc-sidebar-tab>
-    @if ((isDev | async) === true) {
-    <tamu-gisc-sidebar-tab [title]="'Experiments'" [description]="'Aggiemap Experiments'" [material_icon]="'science'" [route]="'experiments'" (click)="reportSidebarContent('Experiments')"></tamu-gisc-sidebar-tab>
-    }
-
-    <tamu-gisc-sidebar-tab [title]="'Settings'" [description]="'Settings'" [material_icon]="'settings'" [route]="'settings'" (click)="reportSidebarContent('Settings')"></tamu-gisc-sidebar-tab>
+    <!-- Every map's tabs, from one list (`sidebar-tabs.ts`, #2758); a development-only tab shows only where testing. -->
+    @for (tab of tabs; track tab.id) { @if (!tab.developmentOnly || (isDev | async) === true) {
+    <tamu-gisc-sidebar-tab [title]="tab.title" [description]="tab.description" [material_icon]="tab.material_icon" [route]="tab.route" (click)="reportSidebarContent(tab.title)"></tamu-gisc-sidebar-tab>
+    } }
   </div>
 
   <div class="content">
