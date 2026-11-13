@@ -9,6 +9,8 @@ Charts for the Angular apps, drawn with [amCharts 5](https://www.amcharts.com/do
   - `[bars]` draws a series as pale columns in a short panel under the lines, on their own scale.
   - `[bands]` shades stretches of time, each with a label.
   - `[unit]` names what the values count, for the hover text.
+  - `[interval]="'hour'"` charts points of an hour rather than a day (from `countsByHour`), as the check-ins dashboard
+    does across GIS Day week (#2893).
 - `runningTotalByDay(times)`, `countsByDay(times)` and `bandOfDays(times, label)`: a list of times as a running total,
   as each day's count, and as the band of days they cover. Each day is placed at midnight UTC of its calendar day in
   the time zone given (Central by default), and the chart reads dates in UTC, so a point is labelled as the day it is.

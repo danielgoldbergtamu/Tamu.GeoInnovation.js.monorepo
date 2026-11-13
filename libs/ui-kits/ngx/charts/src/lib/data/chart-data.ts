@@ -21,6 +21,12 @@ export interface ChartBand {
 /** Aggie maroon first, then colours that stay apart from it and from each other. */
 export const DEFAULT_SERIES_COLORS = ['#500000', '#2c7fb8', '#d95f02', '#707373'];
 
+/** What one point stands for: a calendar day, or an hour of one (#2893). */
+export type ChartInterval = 'day' | 'hour';
+
+/** How long an interval is. */
+export const INTERVAL_MS: Record<ChartInterval, number> = { day: 24 * 60 * 60 * 1000, hour: 60 * 60 * 1000 };
+
 /** What a chart drawer is given: everything resolved, colours included. */
 export interface LineChartOptions {
   series: Array<Required<ChartSeries>>;
@@ -30,6 +36,8 @@ export interface LineChartOptions {
   steps: boolean;
   /** What a value is a count of, for the hover text: "RSVPs" reads "1,003 RSVPs". */
   unit: string;
+  /** What one point stands for. Points of a day sit at midnight UTC of that day, points of an hour at that hour in UTC. */
+  interval: ChartInterval;
 }
 
 /** The series with each one's colour filled in. */
@@ -68,22 +76,53 @@ export function runningTotalByDay(times: Array<Date | string>, timeZone = 'Ameri
 }
 
 /**
+ * How many of `times` fall in each hour, in `timeZone` (#2893): each hour placed at that hour of that day as if it were
+ * UTC, so a chart reading dates in UTC labels it with the time it was where it happened.
+ */
+export function countsByHour(times: Array<Date | string>, timeZone = 'America/Chicago'): Array<ChartPoint> {
+  const format = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hourCycle: 'h23'
+  });
+  const perHour = new Map<string, number>();
+
+  for (const time of times) {
+    const parts = Object.fromEntries(format.formatToParts(new Date(time)).map((p) => [p.type, p.value]));
+    const hour = `${parts['year']}-${parts['month']}-${parts['day']}T${parts['hour']}`;
+    perHour.set(hour, (perHour.get(hour) ?? 0) + 1);
+  }
+
+  return [...perHour.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([hour, y]) => ({ x: new Date(`${hour}:00:00Z`), y }));
+}
+
+/**
  * `points`, one per calendar day (each at midnight UTC) from the first to the last, so a chart has a value to show on
  * every day: a day with no point holds the day before's value (`'hold'`, for a running total) or is zero (`'zero'`, for
  * a day's count).
  */
 export function everyDay(points: Array<ChartPoint>, fill: 'hold' | 'zero'): Array<ChartPoint> {
+  return everyStep(points, fill, 'day');
+}
+
+/** As everyDay, for points of any interval: one per day, or one per hour. */
+export function everyStep(points: Array<ChartPoint>, fill: 'hold' | 'zero', interval: ChartInterval): Array<ChartPoint> {
   if (points.length === 0) {
     return [];
   }
 
-  const DAY = 24 * 60 * 60 * 1000;
+  const step = INTERVAL_MS[interval];
   const sorted = [...points].sort((a, b) => a.x.getTime() - b.x.getTime());
   const byDay = new Map(sorted.map((p) => [p.x.getTime(), p.y]));
   const out: Array<ChartPoint> = [];
   let last = 0;
 
-  for (let t = sorted[0].x.getTime(); t <= sorted[sorted.length - 1].x.getTime(); t += DAY) {
+  for (let t = sorted[0].x.getTime(); t <= sorted[sorted.length - 1].x.getTime(); t += step) {
     const y = byDay.get(t) ?? (fill === 'hold' ? last : 0);
     out.push({ x: new Date(t), y });
     last = y;

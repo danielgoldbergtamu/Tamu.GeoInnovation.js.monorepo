@@ -9,8 +9,11 @@ import { downloadFile } from '@tamu-gisc/common/utils/ui';
 
 import type { DashboardTableColumn } from '../dashboard-table/dashboard-table.component';
 
-/** A person as every dashboard lists them: their profile, and when they did what the dashboard counts. */
-export type DashboardPerson = RsvpDashboardPerson;
+/**
+ * A person as every dashboard lists them: their profile, when they did what the dashboard counts, and a note where the
+ * page has one, such as a check-in by someone who had not RSVP'd (#2893).
+ */
+export type DashboardPerson = RsvpDashboardPerson & { note?: string | null };
 
 export interface DashboardPeopleGroup {
   type: RsvpPersonType;
@@ -31,6 +34,7 @@ export function groupPeople(people: Array<DashboardPerson>): Array<DashboardPeop
 
 /** People as a CSV, one row each, grouped as the page shows them; `dateLabel` heads the column of when they did it. */
 export function peopleCsv(people: Array<DashboardPerson>, dateLabel: string): string {
+  const noted = people.some((p) => p.note);
   const columns = [
     'Last name',
     'First name',
@@ -40,7 +44,8 @@ export function peopleCsv(people: Array<DashboardPerson>, dateLabel: string): st
     'Position',
     'Department / field of study',
     'University / employer',
-    dateLabel
+    dateLabel,
+    ...(noted ? ['Note'] : [])
   ];
   const rows = groupPeople(people).flatMap((group) =>
     group.people.map((p) => ({
@@ -52,7 +57,8 @@ export function peopleCsv(people: Array<DashboardPerson>, dateLabel: string): st
       Position: p.position ?? '',
       'Department / field of study': p.department ?? '',
       'University / employer': p.organization ?? '',
-      [dateLabel]: p.created
+      [dateLabel]: p.created,
+      ...(noted ? { Note: p.note ?? '' } : {})
     }))
   );
 
@@ -96,6 +102,8 @@ export class DashboardPeopleComponent {
   public readonly emptyText = input('Nobody yet.');
 
   public readonly groups = computed(() => groupPeople(this.people() ?? []));
+  /** A Note column only when someone has a note. */
+  public readonly noted = computed(() => (this.people() ?? []).some((p) => p.note));
   public readonly isStudent = isStudent;
 
   public download() {

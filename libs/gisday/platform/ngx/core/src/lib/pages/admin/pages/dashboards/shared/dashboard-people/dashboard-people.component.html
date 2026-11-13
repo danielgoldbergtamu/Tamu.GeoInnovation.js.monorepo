@@ -20,6 +20,9 @@
       <th>{{ isStudent(group.type) ? 'Field of study' : 'Department' }}</th>
       <th>{{ isStudent(group.type) ? 'University' : 'Employer' }}</th>
       <th>{{ dateLabel() }}</th>
+      @if (noted()) {
+      <th>Note</th>
+      }
     </tr>
   </thead>
   <tbody>
@@ -31,6 +34,9 @@
       <td>{{ person.department }}</td>
       <td>{{ person.organization }}</td>
       <td>{{ person.created | date: 'MMM d, h:mm a' }}</td>
+      @if (noted()) {
+      <td>{{ person.note }}</td>
+      }
     </tr>
     }
   </tbody>

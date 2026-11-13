@@ -1,4 +1,4 @@
-import { everyDay, LineChartOptions } from '../../data/chart-data';
+import { everyStep, INTERVAL_MS, LineChartOptions } from '../../data/chart-data';
 
 /**
  * Draws the chart into `host` with amCharts 5 and resolves to what disposes of it. amCharts is imported here, and this
@@ -40,12 +40,13 @@ export async function drawLineChart(host: HTMLElement, options: LineChartOptions
   chart.leftAxesContainer.set('layout', root.verticalLayout);
 
   // The axis spans the data and every band, so a band still to come, such as next week's event, is shown. A point
-  // stands for its whole day, so the data's span ends at the end of its last day, or that day falls off the edge.
-  const DAY = 24 * 60 * 60 * 1000;
+  // stands for its whole day (or hour), so the data's span ends at the end of its last one, or it falls off the edge.
+  const step = INTERVAL_MS[options.interval];
+  const hourly = options.interval === 'hour';
   const pointTimes = [...options.series.flatMap((s) => s.points), ...(options.bars?.points ?? [])].map((p) => p.x.getTime());
   const times = [
     ...pointTimes,
-    ...(pointTimes.length ? [Math.max(...pointTimes) + DAY] : []),
+    ...(pointTimes.length ? [Math.max(...pointTimes) + step] : []),
     ...options.bands.flatMap((b) => [b.from.getTime(), b.to.getTime()])
   ];
   const xAxis = chart.xAxes.push(
@@ -53,21 +54,30 @@ export async function drawLineChart(host: HTMLElement, options: LineChartOptions
       min: Math.min(...times),
       max: Math.max(...times),
       strictMinMax: true,
-      baseInterval: { timeUnit: 'day', count: 1 },
-      gridIntervals: [
-        { timeUnit: 'day', count: 1 },
-        { timeUnit: 'week', count: 1 },
-        { timeUnit: 'month', count: 1 }
-      ],
+      baseInterval: { timeUnit: options.interval, count: 1 },
+      gridIntervals: hourly
+        ? [
+            { timeUnit: 'hour', count: 1 },
+            { timeUnit: 'hour', count: 3 },
+            { timeUnit: 'hour', count: 6 },
+            { timeUnit: 'hour', count: 12 },
+            { timeUnit: 'day', count: 1 }
+          ]
+        : [
+            { timeUnit: 'day', count: 1 },
+            { timeUnit: 'week', count: 1 },
+            { timeUnit: 'month', count: 1 }
+          ],
       renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 55 }),
       tooltip: am5.Tooltip.new(root, {}),
-      tooltipDateFormat: 'EEE, MMM d'
+      tooltipDateFormat: hourly ? 'EEE, MMM d, h a' : 'EEE, MMM d'
     })
   );
 
   for (const formats of [xAxis.get('dateFormats'), xAxis.get('periodChangeDateFormats')]) {
     if (formats) {
-      formats['day'] = 'MMM d';
+      formats['hour'] = 'h a';
+      formats['day'] = hourly ? 'EEE MMM d' : 'MMM d';
       formats['week'] = 'MMM d';
     }
   }
@@ -105,7 +115,7 @@ export async function drawLineChart(host: HTMLElement, options: LineChartOptions
     line.strokes.template.set('strokeWidth', 2);
     line.fills.template.setAll({ visible: true, fillOpacity: 0.08 });
     // Every day has a value, so hovering a day nobody RSVP'd still reads the total.
-    line.data.setAll((options.steps ? everyDay(s.points, 'hold') : s.points).map((p) => ({ x: p.x.getTime(), y: p.y })));
+    line.data.setAll((options.steps ? everyStep(s.points, 'hold', options.interval) : s.points).map((p) => ({ x: p.x.getTime(), y: p.y })));
 
     return line;
   });
@@ -137,7 +147,7 @@ export async function drawLineChart(host: HTMLElement, options: LineChartOptions
     );
     // At most 18 px wide: with only a few days to chart, a column would otherwise be as wide as its share of the chart.
     columns.columns.template.setAll({ width: am5.percent(70), maxWidth: 18, fillOpacity: 0.35, strokeOpacity: 0, cornerRadiusTL: 2, cornerRadiusTR: 2 });
-    columns.data.setAll(everyDay(bars.points, 'zero').map((p) => ({ x: p.x.getTime(), y: p.y })));
+    columns.data.setAll(everyStep(bars.points, 'zero', options.interval).map((p) => ({ x: p.x.getTime(), y: p.y })));
   }
 
   // Drag across the chart to zoom into a period; the zoom-out button or a double-click shows it all again.

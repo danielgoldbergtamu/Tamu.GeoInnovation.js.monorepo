@@ -5,6 +5,7 @@ import { tap } from 'rxjs';
 import { NotificationService } from '@tamu-gisc/common/ngx/ui/notification';
 import { LatLon } from '@tamu-gisc/common/utils/geometry';
 import { CheckIn } from '@tamu-gisc/gisday/platform/data-api';
+import type { CheckInDashboard, CheckInDashboardPerson } from '@tamu-gisc/gisday/platform/data-api';
 
 import { BaseService } from '../_base/base.service';
 
@@ -42,6 +43,16 @@ export class CheckinService extends BaseService<CheckIn> {
    */
   public getCheckinsForEvent(eventGuid: string) {
     return this.http1.get<Array<Partial<CheckIn>>>(`${this.resource}/event/${eventGuid}`);
+  }
+
+  /** A season's events with their RSVPs against their check-ins, for the Check-ins dashboard (#2893): counts only. */
+  public getDashboardForSeason(seasonGuid: string) {
+    return this.http1.get<CheckInDashboard>(`${this.resource}/dashboard/season/${seasonGuid}`);
+  }
+
+  /** The people who checked in to one event, for the dashboard's opened row and its CSV (#2893). */
+  public getDashboardForEvent(eventGuid: string) {
+    return this.http1.get<Array<CheckInDashboardPerson>>(`${this.resource}/dashboard/event/${eventGuid}`);
   }
 
   /**

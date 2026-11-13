@@ -16,10 +16,30 @@ import {
 import { JwtGuard, Permissions, PermissionsGuard } from '@tamu-gisc/common/nest/auth';
 
 import { CheckInProvider } from './check-in.provider';
+import { CheckInDashboardProvider } from './check-in-dashboard.provider';
 
 @Controller('check-ins')
 export class CheckInController {
-  constructor(private readonly provider: CheckInProvider) {}
+  constructor(
+    private readonly provider: CheckInProvider,
+    private readonly dashboard: CheckInDashboardProvider
+  ) {}
+
+  /** The Check-ins dashboard (#2893): each event's RSVPs against its check-ins, counts only. */
+  @UseGuards(JwtGuard, PermissionsGuard)
+  @Permissions(['read:checkins'])
+  @Get('dashboard/season/:guid')
+  public async getDashboardForSeason(@Param('guid') guid: string) {
+    return this.dashboard.getSeason(guid);
+  }
+
+  /** The people who checked in to one event, for the dashboard's opened row and its CSV. */
+  @UseGuards(JwtGuard, PermissionsGuard)
+  @Permissions(['read:checkins'])
+  @Get('dashboard/event/:guid')
+  public async getDashboardForEvent(@Param('guid') guid: string) {
+    return this.dashboard.getEvent(guid);
+  }
 
   @UseGuards(JwtGuard)
   @Get('user/event/:eventGuid')

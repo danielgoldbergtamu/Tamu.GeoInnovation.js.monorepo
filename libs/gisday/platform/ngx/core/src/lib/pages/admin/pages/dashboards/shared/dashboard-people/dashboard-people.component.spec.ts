@@ -50,6 +50,18 @@ describe('peopleCsv()', () => {
   });
 });
 
+describe('peopleCsv() with notes', () => {
+  it('adds a Note column only when someone has a note', () => {
+    expect(peopleCsv(people, 'Checked in').split(/\r?\n/)[0]).not.toContain('Note');
+
+    const noted = peopleCsv([{ ...people[0], note: 'Walk-in' }, people[1]], 'Checked in');
+    const rows = Papa.parse<Record<string, string>>(noted, { header: true }).data;
+
+    expect(noted.split(/\r?\n/)[0]).toMatch(/,Checked in,Note$/);
+    expect(rows.map((r) => r['Note'])).toEqual(['', 'Walk-in']);
+  });
+});
+
 describe('PERSON_TYPE_COLUMNS', () => {
   it('heads a column per type, in order, with a soft hyphen in Undergraduate only', () => {
     expect(PERSON_TYPE_COLUMNS.map((c) => c.key)).toEqual(['undergraduate', 'graduate', 'student', 'academia', 'industry', 'not-given']);
@@ -82,6 +94,14 @@ describe('DashboardPeopleComponent', () => {
     expect(Array.from(el.querySelectorAll('h4')).map((h) => h.textContent.trim())).toEqual(['Undergraduate (2)', 'Faculty & academia (1)']);
     expect(el.querySelector('th:last-child').textContent).toBe('Checked in');
     expect(el.textContent).toContain('ana@example.edu');
+  });
+
+  it("shows a Note column only when someone has a note", () => {
+    expect(Array.from(show({ people }).querySelectorAll('th')).map((th) => th.textContent)).not.toContain('Note');
+
+    const el = show({ people: [{ ...people[0], note: 'Walk-in' }, people[1], people[2]] });
+    expect(Array.from(el.querySelectorAll('th')).map((th) => th.textContent)).toContain('Note');
+    expect(el.textContent).toContain('Walk-in');
   });
 
   it('says so while reading, if the people could not be read, and if there are none', () => {

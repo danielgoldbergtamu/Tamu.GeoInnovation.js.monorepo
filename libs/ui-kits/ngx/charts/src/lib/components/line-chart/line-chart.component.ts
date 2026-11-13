@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, viewChild } from '@angular/core';
 
-import { ChartBand, ChartSeries, LineChartOptions, withColors } from '../../data/chart-data';
+import { ChartBand, ChartInterval, ChartSeries, LineChartOptions, withColors } from '../../data/chart-data';
 import { LINE_CHART_DRAWER } from './line-chart.drawer';
 
 /**
@@ -28,6 +28,8 @@ export class LineChartComponent {
   public readonly bands = input<Array<ChartBand>>([]);
   /** What a value counts, for the hover text: 'RSVPs' reads "All events: 1,003 RSVPs". */
   public readonly unit = input<string>('');
+  /** What one point stands for: a day (from runningTotalByDay, countsByDay) or an hour (from countsByHour). */
+  public readonly interval = input<ChartInterval>('day');
   /** The chart's height in pixels. It does not grow with the page's width. */
   public readonly height = input<number>(320);
 
@@ -42,7 +44,8 @@ export class LineChartComponent {
       bars: bars ? { ...bars, color: bars.color ?? series[0]?.color ?? '#500000' } : null,
       bands: this.bands(),
       steps: this.steps(),
-      unit: this.unit()
+      unit: this.unit(),
+      interval: this.interval()
     };
   });
 

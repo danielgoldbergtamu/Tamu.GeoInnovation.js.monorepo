@@ -12,13 +12,27 @@ export interface DashboardTableRow {
   /** When the thing happens, shown in its own sortable column if any row has one. */
   when?: string | null;
   total: number;
-  counts: Record<string, number>;
+  /** Each column's value; null where it has none, such as a show-up rate for an event nobody RSVP'd for. */
+  counts: Record<string, number | null>;
 }
 
-/** A count column: its key in each row's `counts`, and its heading. */
+/** A column of numbers: its key in each row's `counts`, and its heading. */
 export interface DashboardTableColumn {
   key: string;
   label: string;
+  /** How its values read: a count (the default), or a share from 0 to 1 as a percentage (#2893). */
+  format?: 'count' | 'percent';
+  /** The total row's value, worked out from every row: a share is not the sum of shares. By default, the values added up. */
+  total?: (rows: Array<DashboardTableRow>) => number | null;
+}
+
+/** A value as its column reads it: a percentage for a share, a dash where there is none. */
+export function formatValue(value: number | null | undefined, format: DashboardTableColumn['format']): string {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '—';
+  }
+
+  return format === 'percent' ? `${Math.round(value * 100)}%` : String(value);
 }
 
 /** What a row opens to: `<ng-template tamuGiscDashboardRowDetail let-row>`, given the row. */
@@ -64,6 +78,11 @@ export function compareTimes(a: string | null, b: string | null): number {
   return (a ? new Date(a).getTime() : Infinity) - (b ? new Date(b).getTime() : Infinity);
 }
 
+/** Numbers compared by value; a missing one sorts below every number. */
+export function compareNumbers(a: number | null, b: number | null): number {
+  return (a ?? -Infinity) - (b ?? -Infinity);
+}
+
 /**
  * A dashboard's table of counts (#2891): a row per thing counted, a column per category, and a total row that stays
  * at the bottom whatever the order. A click on a heading sorts by it, and again reverses it. A click on a row opens
@@ -82,6 +101,8 @@ export class DashboardTableComponent {
   /** The first column's heading, and the total row's name. */
   public readonly nameLabel = input('Name');
   public readonly totalLabel = input('All');
+  /** The heading of the column of each row's total, such as "Checked in". */
+  public readonly totalColumnLabel = input('Total');
   /** How `when` is shown, in Central time. */
   public readonly whenFormat = input('EEE MMM d, h:mm a');
 
@@ -99,7 +120,14 @@ export class DashboardTableComponent {
 
   public readonly compareNames = compareNames;
   public readonly compareTimes = compareTimes;
+  public readonly compareNumbers = compareNumbers;
+  public readonly formatValue = formatValue;
   public readonly sum = (cells: Array<number>) => cells.reduce((total, n) => total + (Number(n) || 0), 0);
+
+  /** The total row's cell for a column: its own total if it has one, read as the column reads. */
+  public summaryOf(column: DashboardTableColumn): (cells: Array<number | null>) => string | number {
+    return (cells) => (column.total ? formatValue(column.total(this.rows()), column.format) : this.sum(cells as Array<number>));
+  }
   public readonly totalName = () => this.totalLabel();
   public readonly blank = () => '';
 

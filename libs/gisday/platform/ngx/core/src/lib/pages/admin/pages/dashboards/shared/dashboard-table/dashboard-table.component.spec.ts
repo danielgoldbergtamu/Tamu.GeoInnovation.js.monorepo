@@ -7,7 +7,9 @@ import {
   DashboardRowDetailDirective,
   DashboardTableComponent,
   DashboardTableRow,
-  adjustSorts
+  adjustSorts,
+  compareNumbers,
+  formatValue
 } from './dashboard-table.component';
 
 const rows: Array<DashboardTableRow> = [
@@ -128,6 +130,20 @@ describe('adjustSorts()', () => {
 
   it('lets a second click on the same column reverse it', () => {
     expect(adjustSorts([{ prop: 'total', dir: 'asc' }], [{ prop: 'total', dir: 'desc' }], ascending)).toEqual([{ prop: 'total', dir: 'asc' }]);
+  });
+});
+
+describe('formatValue()', () => {
+  it('reads a count as it is, a share as a percentage, and nothing as a dash', () => {
+    expect(formatValue(7, 'count')).toBe('7');
+    expect(formatValue(0.666, 'percent')).toBe('67%');
+    expect(formatValue(null, 'percent')).toBe('—');
+  });
+});
+
+describe('compareNumbers()', () => {
+  it('puts a missing number below every number', () => {
+    expect([0.5, null, 1, 0].sort(compareNumbers)).toEqual([null, 0, 0.5, 1]);
   });
 });
 

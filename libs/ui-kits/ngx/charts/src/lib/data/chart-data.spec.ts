@@ -1,4 +1,4 @@
-import { bandOfDays, countsByDay, dayIn, everyDay, runningTotalByDay, withColors } from './chart-data';
+import { bandOfDays, countsByDay, countsByHour, dayIn, everyDay, everyStep, runningTotalByDay, withColors } from './chart-data';
 
 const times = [
   '2026-11-03T15:00:00Z',
@@ -51,6 +51,26 @@ describe('everyDay()', () => {
 
   it('gives nothing for no points', () => {
     expect(everyDay([], 'hold')).toEqual([]);
+  });
+});
+
+describe('countsByHour()', () => {
+  it('counts each hour, in Central time, placed at that hour as if UTC, so it is labelled as the hour it was', () => {
+    expect(countsByHour(['2026-11-18T15:10:00Z', '2026-11-18T15:50:00Z', '2026-11-18T17:05:00Z'])).toEqual([
+      { x: new Date('2026-11-18T09:00:00Z'), y: 2 },
+      { x: new Date('2026-11-18T11:00:00Z'), y: 1 }
+    ]);
+  });
+});
+
+describe('everyStep()', () => {
+  it('fills every hour between the first and the last', () => {
+    const points = [
+      { x: new Date('2026-11-18T09:00:00Z'), y: 2 },
+      { x: new Date('2026-11-18T11:00:00Z'), y: 1 }
+    ];
+
+    expect(everyStep(points, 'zero', 'hour').map((p) => p.y)).toEqual([2, 0, 1]);
   });
 });
 

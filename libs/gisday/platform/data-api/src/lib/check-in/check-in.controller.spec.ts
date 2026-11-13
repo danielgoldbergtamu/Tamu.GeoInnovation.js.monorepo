@@ -6,6 +6,7 @@ import { JwtGuard, PermissionsGuard } from '@tamu-gisc/common/nest/auth';
 
 import { CheckInController } from './check-in.controller';
 import { CheckInProvider } from './check-in.provider';
+import { CheckInDashboardProvider } from './check-in-dashboard.provider';
 
 /**
  * Requests go through Nest's real routing, body parsing and `PermissionsGuard`, so what is checked is
@@ -22,6 +23,7 @@ describe('CheckInController', () => {
     getCheckInCode: jest.fn(),
     getCheckinsForEvent: jest.fn()
   };
+  const dashboard = { getSeason: jest.fn(async () => ({ events: [], made: [], unreadAccounts: 0 })), getEvent: jest.fn(async () => []) };
 
   const post = (path: string, body: object) =>
     fetch(`${url}/check-ins${path}`, {
@@ -41,7 +43,10 @@ describe('CheckInController', () => {
 
     const module = await Test.createTestingModule({
       controllers: [CheckInController],
-      providers: [{ provide: CheckInProvider, useValue: provider }]
+      providers: [
+        { provide: CheckInProvider, useValue: provider },
+        { provide: CheckInDashboardProvider, useValue: dashboard }
+      ]
     })
       .overrideGuard(JwtGuard)
       .useValue({
@@ -99,6 +104,21 @@ describe('CheckInController', () => {
     it('refuses an attendee, who would see who else checked in', async () => {
       expect((await fetch(`${url}/check-ins/event/event-1`)).status).toBe(403);
       expect(provider.getCheckinsForEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /check-ins/dashboard/... (#2893)', () => {
+    it('gives an admin with read:checkins the season and an event, and refuses anyone without it', async () => {
+      expect((await fetch(`${url}/check-ins/dashboard/season/s-1`)).status).toBe(403);
+      expect((await fetch(`${url}/check-ins/dashboard/event/e-1`)).status).toBe(403);
+      expect(dashboard.getSeason).not.toHaveBeenCalled();
+
+      permissions = ['read:checkins'];
+
+      expect((await fetch(`${url}/check-ins/dashboard/season/s-1`)).status).toBe(200);
+      expect((await fetch(`${url}/check-ins/dashboard/event/e-1`)).status).toBe(200);
+      expect(dashboard.getSeason).toHaveBeenCalledWith('s-1');
+      expect(dashboard.getEvent).toHaveBeenCalledWith('e-1');
     });
   });
 

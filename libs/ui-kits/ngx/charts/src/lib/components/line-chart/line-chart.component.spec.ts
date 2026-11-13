@@ -13,7 +13,7 @@ describe('LineChartComponent', () => {
   const day = (d: string) => new Date(`${d}T00:00:00Z`);
   const all: ChartSeries = { label: 'All events', points: [{ x: day('2026-11-01'), y: 2 }, { x: day('2026-11-03'), y: 7 }] };
 
-  async function show(inputs: Partial<Record<'series' | 'bars' | 'bands' | 'steps' | 'unit' | 'label' | 'height', unknown>>) {
+  async function show(inputs: Partial<Record<'series' | 'bars' | 'bands' | 'steps' | 'unit' | 'label' | 'height' | 'interval', unknown>>) {
     for (const [name, value] of Object.entries({ label: 'RSVPs over time', ...inputs })) {
       fixture.componentRef.setInput(name, value);
     }
@@ -68,6 +68,14 @@ describe('LineChartComponent', () => {
     expect(options.bars.color).toBe('#500000');
     expect(options.steps).toBe(true);
     expect(options.unit).toBe('RSVPs');
+  });
+
+  it('charts days unless told the points are hours', async () => {
+    await show({ series: [all] });
+    expect(drawn.at(-1).options.interval).toBe('day');
+
+    await show({ series: [all], interval: 'hour' });
+    expect(drawn.at(-1).options.interval).toBe('hour');
   });
 
   it('passes the shaded bands through', async () => {
