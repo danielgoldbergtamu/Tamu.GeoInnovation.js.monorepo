@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgClass, AsyncPipe, DatePipe, TitleCasePipe } from '@angular/common';
-import { combineLatest, map, Observable, shareReplay, startWith } from 'rxjs';
+import { combineLatest, map, Observable, shareReplay, startWith, switchMap, take } from 'rxjs';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 import { Submission, SubmissionWithSubmitter } from '@tamu-gisc/gisday/platform/data-api';
@@ -14,6 +14,7 @@ import {
   SubmissionReviewStatusPipe
 } from '@tamu-gisc/gisday/platform/ngx/common';
 import { CheckboxComponent, RadioGroupComponent, SelectComponent } from '@tamu-gisc/ui-kits/ngx/forms';
+import { downloadFile } from '@tamu-gisc/common/utils/ui';
 import { ExistsPipe } from '@tamu-gisc/common/ngx/pipes';
 
 import { BaseAdminListComponent } from '../../../base-admin-list/base-admin-list.component';
@@ -111,6 +112,38 @@ export class ResearchCompetitionListComponent extends BaseAdminListComponent<Sub
       }),
       shareReplay(1)
     );
+  }
+
+  /** Whether the season's zip is being fetched, and why it could not be, if it could not (#2933). */
+  public readonly zipping = signal(false);
+  public readonly zipProblem = signal<string | null>(null);
+
+  /** Every file the season's submissions have, as one zip, a folder per submission (#2933). */
+  public downloadAllFiles() {
+    this.zipping.set(true);
+    this.zipProblem.set(null);
+
+    this.selectedSeason$
+      .pipe(
+        take(1),
+        switchMap((season) =>
+          this.entityService.getSeasonFilesZip(season.guid).pipe(map((zip) => ({ zip, year: season.year })))
+        )
+      )
+      .subscribe({
+        next: ({ zip, year }) => {
+          this.zipping.set(false);
+          downloadFile(zip, `gisday-${year}-submission-files.zip`, 'application/zip');
+        },
+        error: (err) => {
+          this.zipping.set(false);
+          this.zipProblem.set(
+            err?.status === 404
+              ? 'No submission in this season has a file attached yet.'
+              : 'The files could not be downloaded.'
+          );
+        }
+      });
   }
 
   /** A click on a row opens it for review; a click in its checkbox only selects it. */
