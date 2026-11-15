@@ -75,6 +75,7 @@ describe('EventDetailComponent check-in', () => {
 
     const getCheckInCode = jest.fn(() => of({ code: 'code-1' }));
     const login = jest.fn();
+    const toast = jest.fn();
     const getCheckinsForEvent = jest.fn(sessionCheckIns);
     const insertUserCheckin = jest.fn<ReturnType<typeof insert>, [string, unknown?, string?]>(() => {
       const result = insert();
@@ -128,7 +129,7 @@ describe('EventDetailComponent check-in', () => {
             getCheckinsForEvent
           }
         },
-        { provide: NotificationService, useValue: { toast: jest.fn() } },
+        { provide: NotificationService, useValue: { toast } },
         // The QR code's copyable link counts copies.
         { provide: Angulartics2, useValue: { eventTrack: { next: jest.fn() } } }
       ]
@@ -172,6 +173,7 @@ describe('EventDetailComponent check-in', () => {
       getCheckInCode,
       getCheckinsForEvent,
       login,
+      toast,
       detectChanges: () => f.detectChanges()
     };
   }
@@ -292,6 +294,33 @@ describe('EventDetailComponent check-in', () => {
         expect(text()).toContain('Your attendance has been registered');
       }
     );
+
+    // #3081: on a phone the Checkin section is below the first screen, so the result is also said at the top.
+    it('says at the top of the screen that the QR code checked the attendee in', async () => {
+      const { toast, detectChanges } = open('hybrid', undefined, undefined, scanned);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      detectChanges();
+
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "You're checked in to Opening session.", title: 'Check-in' })
+      );
+    });
+
+    it('says at the top of the screen why a QR check-in was refused', async () => {
+      const refused = "Check in to this session by scanning the QR code on the presenter's slides.";
+      const { toast, detectChanges } = open(
+        'hybrid',
+        () => throwError(() => new HttpErrorResponse({ status: 403, error: { statusCode: 403, message: refused } })),
+        undefined,
+        { query: { checkin: 'from-another-session' } }
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      detectChanges();
+
+      expect(toast).toHaveBeenCalledWith(expect.objectContaining({ message: refused, title: 'Check-in' }));
+    });
 
     it('does not check in by itself without the code', () => {
       const { insertUserCheckin } = open('hybrid');

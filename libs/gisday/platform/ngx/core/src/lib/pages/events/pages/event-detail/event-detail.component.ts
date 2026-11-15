@@ -433,16 +433,23 @@ export class EventDetailComponent implements OnInit, OnDestroy {
         take(1),
         switchMap((event) =>
           this._checkInPosition(event).pipe(
-            switchMap((position) => this.checkinService.insertUserCheckin(event.guid, position, this.checkInCode()))
+            switchMap((position) => this.checkinService.insertUserCheckin(event.guid, position, this.checkInCode())),
+            map(() => event)
           )
         )
       )
       .subscribe({
-        next: () => {
+        next: (event) => {
           this._refresh$.next(true);
+          // Also at the top of the screen (#3081): on a phone the Checkin section is below the first screen, where an
+          // attendee who has just scanned a QR code may not look.
+          this._toastCheckIn(`You're checked in to ${event.name}.`, 'gisday-checkin-success');
         },
         error: (err) => {
-          this.checkInFailure.set(checkInFailureMessage(err));
+          const message = checkInFailureMessage(err);
+
+          this.checkInFailure.set(message);
+          this._toastCheckIn(message, 'gisday-checkin-failure');
         }
       });
   }
@@ -521,6 +528,10 @@ export class EventDetailComponent implements OnInit, OnDestroy {
           console.log(`Error updating attendance. ${err.status}: ${err.message}`);
         }
       });
+  }
+
+  private _toastCheckIn(message: string, id: string) {
+    this.ns.toast({ message, id, title: 'Check-in' });
   }
 
   private _toastEventRegistrationSuccess() {
