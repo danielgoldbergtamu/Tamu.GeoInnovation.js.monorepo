@@ -104,6 +104,18 @@ describe('CheckInController', () => {
       expect((await fetch(`${url}/check-ins/event/event-1`)).status).toBe(403);
       expect(provider.getCheckinsForEvent).not.toHaveBeenCalled();
     });
+
+    /**
+     * #3038: a 403 says which permission was missing, so a page can name it. On 15 November production's Check-ins
+     * dashboard answered 403 because read:checkins was not defined on the Auth0 API, and nothing said so.
+     */
+    it("names the permission the account lacks, so the page can say so (#3038)", async () => {
+      const response = await fetch(`${url}/check-ins/event/event-1`);
+
+      expect(await response.json()).toEqual(
+        expect.objectContaining({ statusCode: 403, permissions: ['read:checkins'], message: expect.stringContaining('read:checkins') })
+      );
+    });
   });
 
   describe('GET /check-ins/code/:eventGuid (#2560)', () => {

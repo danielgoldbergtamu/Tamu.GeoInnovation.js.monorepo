@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { serverMessage } from './server-message';
+import { requestFailure, serverMessage } from './server-message';
 
 /**
  * #2966. A refused save or upload showed only its status ("Error creating sponsor: 400"); the API's own message says why.
@@ -48,5 +48,38 @@ describe('serverMessage', () => {
   it('gives the fallback for an error that is not an HTTP response', () => {
     expect(serverMessage(new Error('boom'), fallback)).toBe(fallback);
     expect(serverMessage(undefined, fallback)).toBe(fallback);
+  });
+});
+
+/**
+ * #3038: an admin page whose request is refused says why, and does not suggest trying again when that cannot help. On
+ * 15 November the Check-ins dashboard said "Try again in a moment." to a 403 that only Auth0 could fix.
+ */
+describe('requestFailure', () => {
+  const words = { what: 'read check-ins', fallback: 'The check-ins could not be read. Try again in a moment.' };
+  const answered = (status: number, error?: object) => ({ status, error });
+
+  it('names the permission a 403 says is missing, and who adds it', () => {
+    expect(requestFailure(answered(403, { statusCode: 403, permissions: ['read:checkins'] }), words)).toBe(
+      "Your account doesn't have permission to read check-ins (read:checkins). An administrator adds it in Auth0; then sign out and back in."
+    );
+  });
+
+  it('says so without a name when the 403 gives none, and names either of several', () => {
+    expect(requestFailure(answered(403), words)).toBe(
+      "Your account doesn't have permission to read check-ins. An administrator adds it in Auth0; then sign out and back in."
+    );
+    expect(requestFailure(answered(403, { permissions: ['update:speakers', 'read:competitions'] }), words)).toContain(
+      '(update:speakers or read:competitions)'
+    );
+  });
+
+  it('says to sign in again for a 401', () => {
+    expect(requestFailure(answered(401), words)).toBe('Your sign-in has expired. Sign out and sign in again, then try again.');
+  });
+
+  it("keeps the page's own words for anything else", () => {
+    expect(requestFailure(answered(500), words)).toBe(words.fallback);
+    expect(requestFailure(new Error('offline'), words)).toBe(words.fallback);
   });
 });

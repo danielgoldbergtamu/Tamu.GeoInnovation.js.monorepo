@@ -198,6 +198,14 @@ describe('CheckInDashboardComponent (#3006)', () => {
     expect(fixture.componentInstance.fileName()).toBe('gisday-check-ins-workshop-2026-11-18');
   });
 
+  it("says the account lacks read:checkins, and does not suggest trying again, when the API answers 403 (#3038)", () => {
+    checkIns.getDashboardForSeason = jest.fn(() => throwError(() => ({ status: 403, error: { statusCode: 403, permissions: ['read:checkins'] } })));
+    const root = open().nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain("Your account doesn't have permission to read check-ins (read:checkins)");
+    expect(root.textContent).not.toContain('Try again in a moment');
+  });
+
   it('says the check-ins could not be read rather than showing an empty dashboard', () => {
     checkIns.getDashboardForSeason = jest.fn(() => throwError(() => new Error('403')));
     const root = open().nativeElement as HTMLElement;
