@@ -152,13 +152,18 @@ export function finalReminderNote(rows: Array<Partial<Submission>>): string | nu
  * never drawn narrower than all of them added up: where they do not fit, it scrolls sideways in its own box. Before, it
  * was drawn at its box's width with the columns wider than it, and ngx-datatable pushed the select and Name columns
  * off its left edge.
+ *
+ * All of them add up to 879 px, the table's box at 1280 px, so there it fits without scrolling (the maintainer's
+ * decision on #3026). The columns above hold their values whole and take 740 of it; the 139 left go to the three whose
+ * text wraps, Name the widest. Their text breaks between words where it can and inside a long word where it cannot, and
+ * the Department / major heading may be cut; each grows back wherever the screen is wider.
  */
 export const SUBMISSION_TABLE_WIDTHS = {
   select: 56,
-  name: 120,
+  name: 55,
   submitted: 104,
-  submittedBy: 130,
-  department: 110,
+  submittedBy: 46,
+  department: 38,
   type: 112,
   format: 100,
   classification: 132,

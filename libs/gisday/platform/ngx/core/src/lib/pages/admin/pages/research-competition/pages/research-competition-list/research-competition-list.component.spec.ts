@@ -422,6 +422,31 @@ describe('ResearchCompetitionListComponent, the final file and the final reminde
       expect(minWidth('reviewStatus')).toBeGreaterThanOrEqual(110 + 16);
       expect(minWidth('submissionType')).toBeGreaterThanOrEqual(89 + 16);
     });
+
+    /**
+     * #3026, the maintainer's decision on the fix above: at 1280 px the table still scrolled, its columns at their
+     * narrowest 1100 px in a box of 879 (measured in Playwright). It now fits that box whole, and scrolls only where the
+     * screen is narrower. The width comes from the columns whose text wraps between words, Name, Submitted by and
+     * Department / major; the columns that hold a value whole keep a width it fits in ("Undergraduate" is 107 px).
+     */
+    it('fits the 879 px a 1280 px screen gives it, so it does not scroll there', () => {
+      const { fixture } = open([]);
+
+      expect(narrowest(fixture)).toBeLessThanOrEqual(879);
+    });
+
+    it('takes that width from the columns that wrap, Name the widest of them, and not from those that hold a value whole', () => {
+      const { fixture } = open([]);
+      const column = (prop: string) => templates(fixture).find((c) => c.prop() === prop);
+      const wrapping = ['title', 'submitter.lastName', 'submitter.department'].map((prop) => column(prop));
+
+      for (const c of wrapping) {
+        expect([c.prop(), String(c.cellClass() ?? '')]).toEqual([c.prop(), expect.not.stringContaining('whole-value')]);
+      }
+
+      expect(column('title').minWidth()).toBe(Math.max(...wrapping.map((c) => c.minWidth())));
+      expect(column('classificationType').minWidth()).toBeGreaterThanOrEqual(107 + 16);
+    });
   });
 
   it('shows the reminder first, editable, saying how many are skipped for having a file, then sends it with the text approved', () => {
