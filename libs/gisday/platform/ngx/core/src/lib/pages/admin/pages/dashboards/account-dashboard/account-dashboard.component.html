@@ -8,8 +8,8 @@
     </div>
 
     <div class="form-section-body">
-      @if (failed()) {
-      <p class="error">The accounts could not be read. Try again in a moment.</p>
+      @if (failure(); as failure) {
+      <p class="error">{{ failure }}</p>
       } @else if (dashboard(); as view) {
       <p class="dashboard-summary">
         <strong>{{ view.accounts }}</strong> {{ view.accounts === 1 ? 'account' : 'accounts' }} with a GIS Day profile, made

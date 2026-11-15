@@ -23,6 +23,7 @@ import { DashboardRowDetailDirective, DashboardTableComponent } from '../shared/
 export class RsvpDashboardComponent extends EventDashboardComponent<RsvpDashboard, UserRsvp> {
   protected readonly entityService = inject(RsvpService);
   protected readonly filePrefix = 'gisday-rsvps';
+  protected readonly failureWords = { what: 'read RSVPs', fallback: 'The RSVPs could not be read. Try again in a moment.' };
 
   protected seasonDashboard(seasonGuid: string) {
     return this.entityService.getDashboardForSeason(seasonGuid);

@@ -32,7 +32,10 @@ function routePermissions(): Array<{ permission: string; route: string }> {
   return LIBRARIES.flatMap((library) => controllerFiles(join(ROOT, library))).flatMap((file) =>
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     Object.values(require(file) as Record<string, unknown>)
-      .filter((value): value is { name: string; prototype: object } => typeof value === 'function' && Reflect.getMetadata(PATH_METADATA, value) !== undefined)
+      .filter(
+        (value): value is { name: string; prototype: object } =>
+          typeof value === 'function' && Reflect.getMetadata(PATH_METADATA, value) !== undefined
+      )
       .flatMap((controller) =>
         Object.getOwnPropertyNames(controller.prototype).flatMap((method) => {
           const asked = Reflect.getMetadata('Permissions', controller.prototype[method]) as [Array<string>] | undefined;

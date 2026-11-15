@@ -9,7 +9,7 @@ import type {
   RsvpDashboardEvent,
   RsvpDashboardPerson
 } from '@tamu-gisc/gisday/platform/data-api';
-import { GISDAY_SITE } from '@tamu-gisc/gisday/platform/ngx/common';
+import { GISDAY_SITE, requestFailure } from '@tamu-gisc/gisday/platform/ngx/common';
 import { bandOfDays, ChartBand, ChartSeries, countsByDay, dayIn, runningTotalByDay } from '@tamu-gisc/ui-kits/ngx/charts';
 import { fileNamePart } from '@tamu-gisc/common/utils/ui';
 
@@ -109,14 +109,16 @@ export abstract class EventDashboardComponent<D extends RsvpDashboard, E extends
 
   /** The start of each event's CSV file name, such as gisday-rsvps. */
   protected abstract readonly filePrefix: string;
+  /** What the page says when its season cannot be read (#3038): `what` it reads, for a 403, and its own words otherwise. */
+  protected abstract readonly failureWords: { what: string; fallback: string };
   protected abstract seasonDashboard(seasonGuid: string): Observable<D>;
   protected abstract eventPeople(eventGuid: string): Observable<Array<RsvpDashboardPerson>>;
 
   public readonly columns = PERSON_TYPE_COLUMNS;
 
-  /** The season's dashboard, null while it loads, and `failed` if it could not be read. */
+  /** The season's dashboard, null while it loads, and why it could not be read, if it could not (#3038). */
   public readonly dashboard = signal<D | null>(null);
-  public readonly failed = signal(false);
+  public readonly failure = signal<string | null>(null);
 
   /** The event whose people are shown, and them once they are read. */
   public readonly expanded = signal<string | null>(null);
@@ -150,13 +152,13 @@ export abstract class EventDashboardComponent<D extends RsvpDashboard, E extends
         filter((season) => Boolean(season?.guid)),
         tap(() => {
           this.dashboard.set(null);
-          this.failed.set(false);
+          this.failure.set(null);
           this.collapse();
         }),
         switchMap((season) =>
           this.seasonDashboard(season.guid).pipe(
-            catchError(() => {
-              this.failed.set(true);
+            catchError((err) => {
+              this.failure.set(requestFailure(err, this.failureWords));
 
               return of(null);
             })

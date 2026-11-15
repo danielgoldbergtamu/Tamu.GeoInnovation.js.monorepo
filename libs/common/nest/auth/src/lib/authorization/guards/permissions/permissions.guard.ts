@@ -10,6 +10,23 @@ import { Reflector } from '@nestjs/core';
 
 import { PermissionsMatchType } from '../../decorators/permissions.decorator';
 
+/**
+ * A 403 that says which permission the account lacks (#3038), in `message` and as `permissions`, so a page can name it.
+ * On 15 November 2026 a dashboard answered every admin 403 because its permission had never been defined in Auth0, and
+ * nothing in the answer said which. With 'some', any one of `permissions` would do; with 'all', each is needed.
+ */
+function missing(required: Array<string>, matchType: PermissionsMatchType, held: Array<string>): ForbiddenException {
+  const lacking = matchType === 'all' ? required.filter((p) => !held.includes(p)) : required;
+  const message =
+    lacking.length === 1
+      ? `This needs the ${lacking[0]} permission.`
+      : matchType === 'all'
+        ? `This needs these permissions: ${lacking.join(', ')}.`
+        : `This needs one of these permissions: ${lacking.join(', ')}.`;
+
+  return new ForbiddenException({ statusCode: 403, error: 'Forbidden', message, permissions: lacking });
+}
+
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -37,7 +54,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     if (request.user.permissions === undefined) {
-      throw new ForbiddenException();
+      throw missing(requiredPermissions, matchType, []);
     }
 
     const permissions = request.user.permissions;
@@ -50,7 +67,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     if (ret === false) {
-      throw new ForbiddenException();
+      throw missing(requiredPermissions, matchType, permissions);
     }
 
     return true;

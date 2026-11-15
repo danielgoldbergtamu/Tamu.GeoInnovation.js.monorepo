@@ -8,6 +8,7 @@ import { SeasonService, UserService } from '@tamu-gisc/gisday/platform/ngx/data-
 import { SelectComponent } from '@tamu-gisc/ui-kits/ngx/forms';
 import { ChartSeries, countsByDay, LineChartComponent, runningTotalByDay } from '@tamu-gisc/ui-kits/ngx/charts';
 import { fileNamePart } from '@tamu-gisc/common/utils/ui';
+import { requestFailure } from '@tamu-gisc/gisday/platform/ngx/common';
 
 import { BaseAdminListComponent } from '../../base-admin-list/base-admin-list.component';
 import { DashboardPeopleComponent, PERSON_TYPE_COLUMNS } from '../shared/dashboard-people/dashboard-people.component';
@@ -49,9 +50,9 @@ export class AccountDashboardComponent extends BaseAdminListComponent<Season> im
 
   public readonly columns = PERSON_TYPE_COLUMNS;
 
-  /** The season's dashboard, null while it loads, and `failed` if it could not be read. */
+  /** The season's dashboard, null while it loads, and why it could not be read, if it could not (#3038). */
   public readonly dashboard = signal<AccountDashboard | null>(null);
-  public readonly failed = signal(false);
+  public readonly failure = signal<string | null>(null);
   private readonly season = signal<{ guid: string; year: number } | null>(null);
 
   /** The row whose people are shown, and them once they are read. */
@@ -90,13 +91,15 @@ export class AccountDashboardComponent extends BaseAdminListComponent<Season> im
         tap((season) => {
           this.season.set({ guid: season.guid, year: season.year });
           this.dashboard.set(null);
-          this.failed.set(false);
+          this.failure.set(null);
           this.collapse();
         }),
         switchMap((season) =>
           this.users.getDashboardForSeason(season.guid).pipe(
-            catchError(() => {
-              this.failed.set(true);
+            catchError((err) => {
+              this.failure.set(
+                requestFailure(err, { what: 'read user accounts', fallback: 'The accounts could not be read. Try again in a moment.' })
+              );
 
               return of(null);
             })

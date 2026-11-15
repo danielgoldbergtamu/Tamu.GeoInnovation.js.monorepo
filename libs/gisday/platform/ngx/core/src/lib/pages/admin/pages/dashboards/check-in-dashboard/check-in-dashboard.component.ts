@@ -31,6 +31,10 @@ import { DashboardRowDetailDirective, DashboardTableComponent } from '../shared/
 export class CheckInDashboardComponent extends EventDashboardComponent<CheckInDashboard, CheckIn> {
   protected readonly entityService = inject(CheckinService);
   protected readonly filePrefix = 'gisday-check-ins';
+  protected readonly failureWords = {
+    what: 'read check-ins',
+    fallback: 'The check-ins could not be read. Try again in a moment.'
+  };
 
   /** Each event's RSVPs in the column after its check-ins, then the person types. */
   public override readonly columns = [{ key: 'rsvps', label: 'RSVPs' }, ...PERSON_TYPE_COLUMNS];
