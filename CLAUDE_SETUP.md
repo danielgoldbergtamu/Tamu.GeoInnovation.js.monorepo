@@ -187,8 +187,8 @@ Inside the containers, Nx runs as `node node_modules/nx/dist/bin/nx.js`, never b
 
 **Build, not just test.** Most libraries have no `build` target at all, so
 `nx build <library>` answers `Cannot find configuration for task` and typechecks nothing. To
-typecheck a library, build an app that consumes it - `aggiemap-angular` or
-`ts-events-angular` for the map libraries, `gisday-nest` for the GIS Day data API. `nx test`
+typecheck a library, build an app that consumes it - `aggiemap-angular`
+for the map libraries, `gisday-nest` for the GIS Day data API. `nx test`
 only compiles what the specs import, and `nx lint` does not typecheck at all.
 
 ## Phase 5 - Run the app

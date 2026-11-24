@@ -169,7 +169,6 @@
         "apps/mailroom-angular/**/*",
         "apps/mailroom-helper-nest/**/*",
         "apps/mailroom-nest/**/*",
-        "apps/ts-events-angular/**/*",
         "apps/ues-operations-angular/**/*",
         "libs/aggiemap/ngx/common/**/*",
         "libs/aggiemap/ngx/core/**/*",
