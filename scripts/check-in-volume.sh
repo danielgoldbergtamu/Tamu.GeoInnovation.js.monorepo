@@ -270,7 +270,7 @@ set +e
 # containers ever write that cache, so it is trusted.
 docker run --rm -m "$memory" \
   -v "$volume:/w" -v "$src:/src:ro" -w /w \
-  -e CHECK_MEMORY="$memory" -e CHECK_PARALLEL="$parallel" -e NX_DAEMON=false -e NX_REJECT_UNKNOWN_LOCAL_CACHE=0 -e LINT_STEPS="$extra" node:24.22.1 sh -c "$(declare -f unknown_projects)
+  -e CHECK_MEMORY="$memory" -e CHECK_PARALLEL="$parallel" -e NX_DAEMON=false -e NX_REJECT_UNKNOWN_LOCAL_CACHE=0 -e LINT_STEPS="$extra" node:24.22.3 sh -c "$(declare -f unknown_projects)
 $inner" check "$branch" "$mode" "${runs[@]}" >"$log" 2>&1
 code=$?
 set -e
