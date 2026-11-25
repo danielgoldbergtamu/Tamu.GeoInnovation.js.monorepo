@@ -8,18 +8,33 @@ import { Angulartics2 } from 'angulartics2';
 import { TripPlannerService } from '../../../../services/trip-planner.service';
 import { TripResult } from '../../../../core/trip-planner-core';
 import { TripPlannerDirectionsActionsComponent } from '../../../trip-planner-directions-actions/containers/base/base.component';
+import { TripPlannerDirectionsActionsMobileComponent } from '../../../trip-planner-directions-actions/containers/mobile/mobile.component';
 import { TripPlannerModeSwitchComponent } from '../../../trip-planner-mode-switch/containers/base/base.component';
+
+/** Where the directions are drawn: the desktop sidebar, or the phone's bottom sheet (#3490). */
+export type TripPlannerDirectionsLayout = 'desktop' | 'mobile';
 
 @Component({
   selector: 'tamu-gisc-trip-planner-directions',
   templateUrl: './base.component.html',
   styleUrls: ['./base.component.scss'],
-  imports: [TripPlannerDirectionsActionsComponent, TripPlannerModeSwitchComponent]
+  imports: [
+    TripPlannerDirectionsActionsComponent,
+    TripPlannerDirectionsActionsMobileComponent,
+    TripPlannerModeSwitchComponent
+  ]
 })
 export class TripPlannerDirectionsComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private plannerService = inject(TripPlannerService);
   private analytics = inject(Angulartics2);
+
+  /**
+   * One template draws both layouts (#3490). The phone's adds the bottom sheet's drag handle and the phone's actions,
+   * whose stylesheet lightens two borders; the rest, including what is shown while a route is calculating or when none
+   * is found, is the same on both.
+   */
+  public readonly layout: TripPlannerDirectionsLayout = 'desktop';
 
   /** Every emission redraws, as the field it replaced did, even one that hands back the same result. */
   public readonly result = signal<TripResult>(undefined, { equal: () => false });

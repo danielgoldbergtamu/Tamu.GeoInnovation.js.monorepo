@@ -1,3 +1,7 @@
+@if (layout === 'mobile') {
+<div class="handle"></div>
+}
+
 <div id="direction-results">
   <!-- Directions Overview  -->
   @if (result()?.directions && !result()?.isProcessing && !result()?.isError) {
@@ -12,9 +16,11 @@
       <div class="unit">Miles</div>
     </div>
   </div>
-  } @if (result() && result()?.isFulfilled) {
+  } @if (result() && result()?.isFulfilled) { @if (layout === 'mobile') {
+  <tamu-gisc-trip-planner-directions-actions-mobile></tamu-gisc-trip-planner-directions-actions-mobile>
+  } @else {
   <tamu-gisc-trip-planner-directions-actions></tamu-gisc-trip-planner-directions-actions>
-  }
+  } }
 
   <!-- User Instructions  -->
   @if (result()?.isProcessing || !result()?.directions || result()?.isError) {
