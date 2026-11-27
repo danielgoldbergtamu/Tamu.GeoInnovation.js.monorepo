@@ -1,5 +1,12 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
 
+/**
+ * The largest deck taken when MAX_BYTES is not set: 100 MB, as large as the API accepts a submission's file
+ * (`SUBMISSION_FILE_RULES.maxBytes`), so no deck the API kept is refused for its size. Written out rather than imported,
+ * so the service's bundle stays the server alone; server.spec.ts holds the two equal.
+ */
+export const DEFAULT_MAX_BYTES = 100 * 1024 * 1024;
+
 /** Turns a deck's bytes into a PDF's, or rejects: `ConversionTimedOut` when it took too long. */
 export type Converter = (deck: Buffer, extension: '.ppt' | '.pptx') => Promise<Buffer>;
 

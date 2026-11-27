@@ -1,7 +1,9 @@
 import { AddressInfo } from 'net';
 import { Server } from 'http';
 
-import { ConversionTimedOut, createPreviewServer, Converter } from './server';
+import { SUBMISSION_FILE_RULES } from '@tamu-gisc/gisday/common';
+
+import { ConversionTimedOut, createPreviewServer, Converter, DEFAULT_MAX_BYTES } from './server';
 
 /**
  * The conversion service's HTTP side (#3346), with the conversion itself replaced: what it accepts, what it refuses, and
@@ -86,5 +88,9 @@ describe('the PowerPoint preview service', () => {
     expect((await fetch(`${url}/convert?name=a.pptx`)).status).toBe(405);
     expect((await fetch(`${url}/elsewhere`, { method: 'POST' })).status).toBe(404);
     expect((await fetch(`${url}/health`)).status).toBe(200);
+  });
+
+  it('takes by default as large a deck as the API accepts, so no deck the API kept is refused for its size', () => {
+    expect(DEFAULT_MAX_BYTES).toBe(SUBMISSION_FILE_RULES.maxBytes);
   });
 });
