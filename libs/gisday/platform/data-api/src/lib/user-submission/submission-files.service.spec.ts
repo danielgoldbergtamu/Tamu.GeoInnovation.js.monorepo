@@ -184,7 +184,7 @@ describe('SubmissionFilesService', () => {
 
   /**
    * #3090: an admin previews a submission's file in the page rather than downloading it. A PDF is sent to be shown, not
-   * saved; a PowerPoint has no preview until it can be converted on the server, so it is still downloaded.
+   * saved; a PowerPoint is sent as the PDF the preview service makes of it (#3346), or downloaded when it cannot.
    */
   describe('preview', () => {
     it('sends a PDF to be shown in the page, under its own name', async () => {

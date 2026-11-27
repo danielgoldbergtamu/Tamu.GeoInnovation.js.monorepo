@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 
 import { UserSubmissionsService } from '@tamu-gisc/gisday/platform/ngx/data-access';
 import { downloadFile } from '@tamu-gisc/common/utils/ui';
@@ -280,7 +280,10 @@ describe('SubmissionFilesComponent', () => {
   });
 });
 
-/** An admin looking through a submission's files in the page (#3090): its PDFs preview; a PowerPoint is downloaded. */
+/**
+ * An admin looking through a submission's files in the page (#3090): every file previews, a PowerPoint as the PDF the API
+ * has made of it (#3346). Where the API cannot make one, it is downloaded instead, as before.
+ */
 describe('SubmissionFilesComponent preview', () => {
   const GUID = '11111111-2222-4333-8444-555555555555';
   const deck = { guid: 'f1', name: 'Made-up deck.pptx', size: 1, uploaded: '2026-11-14T18:00:00.000Z' };
@@ -288,14 +291,16 @@ describe('SubmissionFilesComponent preview', () => {
   const handout = { guid: 'f3', name: 'Made-up handout.pdf', size: 1, uploaded: '2026-11-14T18:02:00.000Z' };
 
   let getFilePreview: Mock;
+  let getFileContents: Mock;
 
   function render(previewable: boolean) {
     getFilePreview = vi.fn(() => of(new Blob(['%PDF-1.4'], { type: 'application/pdf' })));
+    getFileContents = vi.fn(() => of(new Blob(['a made-up deck'])));
     TestBed.configureTestingModule({
       providers: [
         {
           provide: UserSubmissionsService,
-          useValue: { getFiles: vi.fn(() => of([deck, poster, handout])), getFileContents: vi.fn(), getFilePreview }
+          useValue: { getFiles: vi.fn(() => of([deck, poster, handout])), getFileContents, getFilePreview }
         }
       ]
     });
@@ -311,9 +316,10 @@ describe('SubmissionFilesComponent preview', () => {
   beforeEach(() => {
     // jsdom has no object URLs.
     Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:made-up'), revokeObjectURL: vi.fn() });
+    vi.mocked(downloadFile).mockClear();
   });
 
-  it('offers Preview on each PDF only, and only where the list is previewable', () => {
+  it('offers Preview on every file, PowerPoint included, and only where the list is previewable', () => {
     expect(render(false).element.querySelectorAll('.file-preview-link')).toHaveLength(0);
 
     TestBed.resetTestingModule();
@@ -322,10 +328,10 @@ describe('SubmissionFilesComponent preview', () => {
       .filter((row) => row.querySelector('.file-preview-link'))
       .map((row) => row.querySelector('.file-name')?.textContent?.trim());
 
-    expect(offered).toEqual(['Made-up poster.pdf', 'Made-up handout.pdf']);
+    expect(offered).toEqual(['Made-up deck.pptx', 'Made-up poster.pdf', 'Made-up handout.pdf']);
   });
 
-  it('shows a PDF under the list, and pages through the PDFs, wrapping round', () => {
+  it('shows a file under the list, and pages through them all, wrapping round', () => {
     const { fixture, element } = render(true);
 
     fixture.componentInstance.preview(poster);
@@ -341,11 +347,54 @@ describe('SubmissionFilesComponent preview', () => {
 
     fixture.componentInstance.step(1);
     fixture.detectChanges();
+    expect(getFilePreview).toHaveBeenLastCalledWith(GUID, 'f1');
+    expect(element.querySelector('.file-preview-name')?.textContent).toBe('Made-up deck.pptx');
+
+    fixture.componentInstance.step(1);
+    fixture.detectChanges();
     expect(element.querySelector('.file-preview-name')?.textContent).toBe('Made-up poster.pdf');
 
     fixture.componentInstance.closePreview();
     fixture.detectChanges();
     expect(element.querySelector('.file-preview')).toBeNull();
     expect(URL.revokeObjectURL).toHaveBeenCalled();
+  });
+
+  it('says a preview is being prepared while it is fetched, since a PowerPoint takes a few seconds to convert', () => {
+    const { fixture, element } = render(true);
+    getFilePreview.mockReturnValue(NEVER);
+
+    fixture.componentInstance.preview(deck);
+    fixture.detectChanges();
+
+    const link = element.querySelector('.file:first-child .file-preview-link') as HTMLButtonElement;
+    expect(link.textContent?.trim()).toBe('Preparing preview…');
+    expect(link.disabled).toBe(true);
+  });
+
+  it('downloads a PowerPoint the API cannot show, and says so', () => {
+    const { fixture, element } = render(true);
+    getFilePreview.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 415 })));
+
+    fixture.componentInstance.preview(deck);
+    fixture.detectChanges();
+
+    expect(getFileContents).toHaveBeenCalledWith(GUID, 'f1');
+    expect(downloadFile).toHaveBeenCalledWith(expect.any(Blob), 'Made-up deck.pptx', expect.anything());
+    expect(element.querySelector('.file-preview')).toBeNull();
+    expect(element.querySelector('.files-problem')?.textContent).toBe(
+      'Made-up deck.pptx cannot be previewed right now, so it was downloaded instead.'
+    );
+  });
+
+  it('reports any other failure without downloading', () => {
+    const { fixture, element } = render(true);
+    getFilePreview.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+    fixture.componentInstance.preview(deck);
+    fixture.detectChanges();
+
+    expect(downloadFile).not.toHaveBeenCalled();
+    expect(element.querySelector('.files-problem')?.textContent).toBe('Made-up deck.pptx could not be previewed.');
   });
 });

@@ -12,8 +12,8 @@
     } @else {
     <span class="file-name">{{ file.name }}</span>
     } @if (canPreview(file)) {
-    <!-- Shown under the list, for the admins looking through a submission's files (#3090). -->
-    <button type="button" class="inline-link file-preview-link" [disabled]="busy() === file.guid" (click)="preview(file)">Preview</button>
+    <!-- Shown under the list, for the admins looking through a submission's files (#3090); a PowerPoint's first takes a few seconds to convert (#3346). -->
+    <button type="button" class="inline-link file-preview-link" [disabled]="busy() === file.guid" (click)="preview(file)">{{ busy() === file.guid ? 'Preparing preview…' : 'Preview' }}</button>
     }
     <!-- Who uploaded it, where the list is several people's: a session's slides on its admin page (#3093). -->
     <span class="file-detail">@if (file.uploadedBy) {<span class="file-by">{{ file.uploadedBy }}</span> · }{{ size(file.size) }} · {{ file.uploaded | centralDate: 'MMM d, h:mm a' }}</span>
@@ -40,7 +40,7 @@
   }
 </ul>
 } @if (previewing(); as shown) {
-<!-- One PDF at a time, drawn by the browser's own viewer, with Previous and Next between the submission's PDFs (#3090). -->
+<!-- One file at a time as a PDF, drawn by the browser's own viewer, with Previous and Next between the submission's files (#3090, #3346). -->
 <div class="file-preview">
   <div class="flex flex-row wrap align-center file-preview-actions">
     <strong class="file-preview-name">{{ shown.file.name }}</strong>

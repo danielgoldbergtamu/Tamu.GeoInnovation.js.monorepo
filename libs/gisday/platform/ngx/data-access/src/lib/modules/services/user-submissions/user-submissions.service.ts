@@ -201,7 +201,10 @@ export class UserSubmissionsService extends BaseService<Submission> {
     return this.http1.get(`${this.resource}/${submissionGuid}/files/${fileGuid}`, { responseType: 'blob' });
   }
 
-  /** One file to show in the page, for an admin (#3090): a PDF; anything else is refused, and downloaded instead. */
+  /**
+   * One file to show in the page as a PDF, for an admin (#3090): a PDF as it is, a PowerPoint converted (#3346). A file
+   * the API cannot show is refused with a 415, and downloaded instead.
+   */
   public getFilePreview(submissionGuid: string, fileGuid: string) {
     return this.http1.get(`${this.resource}/${submissionGuid}/files/${fileGuid}/preview`, { responseType: 'blob' });
   }

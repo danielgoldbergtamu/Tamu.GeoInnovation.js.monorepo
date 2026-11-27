@@ -45,7 +45,10 @@ export interface FilesSource {
    */
   downloadAll?(): Observable<Blob>;
   downloadAllName?(): string;
-  /** A PDF to show in the page (#3090): a submission's files, for the admins reviewing it. */
+  /**
+   * A file as a PDF to show in the page (#3090): a submission's files, for the admins reviewing it. A PowerPoint comes as
+   * the PDF the API makes of it, or a 415 when it cannot make one (#3346).
+   */
   preview?(fileGuid: string): Observable<Blob>;
 }
 
@@ -86,8 +89,9 @@ export class SubmissionFilesComponent implements OnInit {
   public readonly askBeforeRemoving = input(false);
   public readonly emptyLabel = input('No files attached yet.');
   /**
-   * Offers a Preview on each PDF that shows it under the list, with Previous and Next between them, so the admins
-   * reviewing a submission can look through its files without downloading each (#3090). A PowerPoint is downloaded.
+   * Offers a Preview on each file that shows it under the list, with Previous and Next between them, so the admins
+   * reviewing a submission can look through its files without downloading each (#3090). A PowerPoint is shown as the PDF
+   * the API makes of it, and downloaded when the API cannot make one (#3346).
    */
   public readonly previewable = input(false);
 
@@ -101,10 +105,10 @@ export class SubmissionFilesComponent implements OnInit {
   public readonly busy = signal<string | null>(null);
   /** The file whose removal is being asked about. */
   public readonly asking = signal<string | null>(null);
-  /** The PDF being shown (#3090), and the page-local address it is drawn from. */
+  /** The file being shown (#3090), and the page-local address its PDF is drawn from. */
   public readonly previewing = signal<{ file: SubmissionFileDto; url: SafeResourceUrl } | null>(null);
-  /** The files that preview: the PDFs, in the list's order. */
-  public readonly previewFiles = computed(() => (this.files() ?? []).filter((file) => extensionOf(file.name) === '.pdf'));
+  /** The files that preview, in the list's order: PDFs, and PowerPoints through the API's conversion (#3346). */
+  public readonly previewFiles = computed(() => (this.files() ?? []).filter((file) => previewsAs(file.name)));
 
   private readonly sanitizer = inject(DomSanitizer);
   /** The object URL behind `previewing`, let go when another is shown, the preview is closed or the list goes. */
@@ -126,9 +130,12 @@ export class SubmissionFilesComponent implements OnInit {
     return typeof this.from().download === 'function';
   }
 
-  /** Whether `file` is offered a Preview: the list is previewable, its source can preview, and it is a PDF (#3090). */
+  /**
+   * Whether `file` is offered a Preview: the list is previewable, its source can preview, and it is a PDF (#3090) or a
+   * PowerPoint (#3346).
+   */
   public canPreview(file: SubmissionFileDto): boolean {
-    return this.previewable() && typeof this.from().preview === 'function' && extensionOf(file.name) === '.pdf';
+    return this.previewable() && typeof this.from().preview === 'function' && previewsAs(file.name);
   }
 
   /**
@@ -157,7 +164,15 @@ export class SubmissionFilesComponent implements OnInit {
         },
         error: (err) => {
           this.busy.set(null);
-          this.problem.set(messageOf(err, `${file.name} could not be previewed.`));
+
+          // The API could not make a PDF of it (#3346): the preview service is down or refused it. The admin gets the
+          // file as they did before PowerPoints previewed, and is told why.
+          if (err instanceof HttpErrorResponse && err.status === 415 && this.downloadable) {
+            this.download(file);
+            this.problem.set(`${file.name} cannot be previewed right now, so it was downloaded instead.`);
+          } else {
+            this.problem.set(messageOf(err, `${file.name} could not be previewed.`));
+          }
         }
       });
   }
@@ -335,6 +350,11 @@ export class SubmissionFilesComponent implements OnInit {
         }
       });
   }
+}
+
+/** Whether a file previews: a PDF as it is (#3090), a PowerPoint as the PDF the API makes of it (#3346). */
+function previewsAs(name: string): boolean {
+  return ['.pdf', '.ppt', '.pptx'].includes(extensionOf(name));
 }
 
 /** What `busy` holds while every file is being zipped (#3174): not a file's guid. */
