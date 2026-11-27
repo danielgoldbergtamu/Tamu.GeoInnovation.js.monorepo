@@ -5,6 +5,7 @@ import { Asset, Season, Submission } from '../entities/all.entity';
 import { queryCheckingDataSource, queryCheckingRepository, recordWrites } from '../_base/query-checking-data-source';
 import { AssetsService } from '../assets/assets.service';
 import { SubmissionFilesService } from './submission-files.service';
+import { PptxPreviewConverter } from './pptx-preview.converter';
 
 // The service's queries as typeorm builds them, with the real entities (#2363). submission-files.service.spec.ts mocks the
 // repositories, so it would pass a query typeorm 1 refuses, such as a loaded entity with a null column in a where value.
@@ -46,9 +47,12 @@ describe('SubmissionFilesService queries, built by typeorm', () => {
   beforeEach(() => {
     statements.length = 0;
     submissionRepo = queryCheckingRepository(dataSource, Submission);
-    service = new SubmissionFilesService(submissionRepo, queryCheckingRepository(dataSource, Asset), {
-      deleteAssetFiles: async () => undefined
-    } as unknown as AssetsService);
+    service = new SubmissionFilesService(
+      submissionRepo,
+      queryCheckingRepository(dataSource, Asset),
+      { deleteAssetFiles: async () => undefined } as unknown as AssetsService,
+      new PptxPreviewConverter()
+    );
   });
 
   it("lists a student's own submission's files", async () => {

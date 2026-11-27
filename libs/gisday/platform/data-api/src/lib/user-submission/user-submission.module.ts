@@ -19,6 +19,7 @@ import { EmailSenderService } from '../contact/email-sender.service';
 import { DashboardProfilesService } from '../dashboards/dashboard-profiles.service';
 import { AssetsService } from '../assets/assets.service';
 import { SubmissionFilesService } from './submission-files.service';
+import { PptxPreviewConverter } from './pptx-preview.converter';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { SubmissionFilesService } from './submission-files.service';
     EmailSenderService,
     DashboardProfilesService,
     AssetsService,
-    SubmissionFilesService
+    SubmissionFilesService,
+    PptxPreviewConverter
   ],
   exports: [UserSubmissionProvider]
 })

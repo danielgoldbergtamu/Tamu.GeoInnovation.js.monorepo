@@ -1,5 +1,5 @@
 import { createReadStream } from 'fs';
-import { mkdir, rename, stat, unlink } from 'fs/promises';
+import { mkdir, rename, stat, unlink, writeFile } from 'fs/promises';
 import { join, resolve, sep } from 'path';
 import { Readable } from 'stream';
 
@@ -29,6 +29,7 @@ import {
 
 import { Asset, Submission } from '../entities/all.entity';
 import { AssetsService } from '../assets/assets.service';
+import { PptxPreviewConverter } from './pptx-preview.converter';
 
 /** The asset `type` of a file attached to a submission. */
 export const SUBMISSION_FILE_TYPE = 'submission-file';
@@ -62,7 +63,8 @@ export class SubmissionFilesService {
   constructor(
     @InjectRepository(Submission) private readonly submissions: Repository<Submission>,
     @InjectRepository(Asset) private readonly assets: Repository<Asset>,
-    private readonly assetsService: AssetsService
+    private readonly assetsService: AssetsService,
+    private readonly converter: PptxPreviewConverter
   ) {}
 
   public async list(submissionGuid: string, user: OwnershipUser): Promise<Array<SubmissionFileDto>> {
@@ -116,6 +118,8 @@ export class SubmissionFilesService {
 
     await this.assets.delete(file.guid);
     await this.assetsService.deleteAssetFiles([file]);
+    // A PowerPoint's preview, if one was made (#3346); nothing else has one.
+    await unlink(join(`${process.env.APP_DATA}`, previewPathOf(file))).catch(() => undefined);
   }
 
   /** One file, under the name it was uploaded with. */
@@ -125,19 +129,59 @@ export class SubmissionFilesService {
   }
 
   /**
-   * One file, to be shown in the page rather than saved (#3090): an admin looking through a submission's files. Only
-   * a PDF previews: a browser draws one itself, and none draws a PowerPoint, which stays a download until it can be
-   * converted on the server. The route lets only those who may read the competitions in; a file is found only among
-   * this submission's own.
+   * One file, to be shown in the page rather than saved (#3090): an admin looking through a submission's files. A PDF
+   * is shown as it is, since a browser draws one itself. A PowerPoint, which no browser draws, is shown as a PDF made by
+   * the preview service on its first preview and kept beside the deck, so it is made once (#3346). When the service
+   * cannot make one, the answer is as it was before: 415, and the site downloads the deck instead. The route lets only
+   * those who may read the competitions in; a file is found only among this submission's own.
    */
   public async preview(submissionGuid: string, fileGuid: string, user: OwnershipUser): Promise<StreamableFile> {
     const file = this.fileOf(await this.submissionFor(submissionGuid, user, 'read:competitions'), fileGuid);
+    const extension = extensionOf(file.name);
 
-    if (extensionOf(file.name) !== '.pdf') {
-      throw new UnsupportedMediaTypeException(`${file.name} has no preview: download it instead.`);
+    if (extension === '.pdf') {
+      return fileDownload(file, 'SubmissionFilesService', 'inline');
     }
 
-    return fileDownload(file, 'SubmissionFilesService', 'inline');
+    if (extension === '.ppt' || extension === '.pptx') {
+      const preview = await this.keptPreview(file);
+
+      if (preview) {
+        return fileDownload(preview, 'SubmissionFilesService', 'inline');
+      }
+    }
+
+    throw new UnsupportedMediaTypeException(`${file.name} has no preview: download it instead.`);
+  }
+
+  /**
+   * A PowerPoint's preview as a kept file: `<path>.pdf` beside the deck, named as the deck with `.pdf` in place of its
+   * extension. Made by the preview service the first time it is asked for; null when the service cannot make it.
+   */
+  private async keptPreview(file: Asset): Promise<Asset | null> {
+    const path = previewPathOf(file);
+    const onDisk = join(`${process.env.APP_DATA}`, path);
+    const preview = { ...file, path, name: `${file.name.slice(0, -extensionOf(file.name).length)}.pdf` } as Asset;
+    const kept = await stat(onDisk)
+      .then(() => true)
+      .catch(() => false);
+
+    if (kept) {
+      return preview;
+    }
+
+    const pdf = await this.converter.toPdf(join(`${process.env.APP_DATA}`, file.path), file.name);
+
+    if (!pdf) {
+      return null;
+    }
+
+    // Written whole under another name and renamed into place, so two admins previewing at once never see half a PDF.
+    const writing = `${onDisk}.${crypto.randomUUID()}.part`;
+    await writeFile(writing, pdf);
+    await rename(writing, onDisk);
+
+    return preview;
   }
 
   /**
@@ -228,6 +272,11 @@ export async function discardUpload(upload: Express.Multer.File | undefined): Pr
   if (uploaded) {
     await unlink(uploaded).catch(() => undefined);
   }
+}
+
+/** Where a PowerPoint's preview is kept (#3346): beside the deck, under the deck's own path with `.pdf` added. */
+export function previewPathOf(file: Pick<Asset, 'path'>): string {
+  return `${file.path}.pdf`;
 }
 
 /** A kept file as the API lists it: its name, its size on disk (null when missing) and when it came. */

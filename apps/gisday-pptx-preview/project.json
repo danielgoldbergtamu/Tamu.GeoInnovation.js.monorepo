@@ -1,0 +1,21 @@
+{
+  "name": "gisday-pptx-preview",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/gisday-pptx-preview/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "configurations": {
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "gisday-pptx-preview:build",
+        "host": "0.0.0.0"
+      }
+    }
+  }
+}

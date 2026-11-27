@@ -36,6 +36,7 @@ describe('SubmissionFilesService', () => {
   let saved: Array<Asset>;
   let service: SubmissionFilesService;
   let deleteAssetFiles: Mock;
+  let toPdf: Mock;
   let previousAppData: string | undefined;
 
   const submissionRepo = {
@@ -79,7 +80,10 @@ describe('SubmissionFilesService', () => {
     submissionRepo.find.mockImplementation(async () => [{ ...submission, season: { year: 2026 } }]);
     deleteAssetFiles = vi.fn(async (assets: Array<Asset>) => assets.forEach((a) => rmSync(join(appData, a.path))));
 
-    service = new SubmissionFilesService(submissionRepo as never, assetRepo as never, { deleteAssetFiles } as never);
+    toPdf = vi.fn(async () => null);
+    service = new SubmissionFilesService(submissionRepo as never, assetRepo as never, { deleteAssetFiles } as never, {
+      toPdf
+    } as never);
   });
 
   afterEach(() => {
@@ -205,10 +209,56 @@ describe('SubmissionFilesService', () => {
       );
     });
 
-    it('has no preview for a PowerPoint yet, so it is downloaded instead', async () => {
+    /**
+     * #3346: a PowerPoint previews as a PDF made by the conversion service on its first preview, and kept beside the deck
+     * so it is made once. Whenever the service cannot answer, the preview is what it was before: 415, and the deck is
+     * downloaded.
+     */
+    it('converts a PowerPoint on its first preview, keeps the PDF beside it, and shows that', async () => {
+      await service.add(submission.guid, student, await upload('Texas Watersheds.pptx', 4096));
+      toPdf.mockResolvedValue(Buffer.from('%PDF-1.7 made up'));
+
+      const preview = await service.preview(submission.guid, saved[0].guid, admin);
+
+      expect(toPdf).toHaveBeenCalledWith(join(appData, saved[0].path), 'Texas Watersheds.pptx');
+      expect(existsSync(join(appData, `${saved[0].path}.pdf`))).toBe(true);
+      expect(preview.getHeaders()).toEqual(
+        expect.objectContaining({
+          type: 'application/pdf',
+          length: '%PDF-1.7 made up'.length,
+          disposition: `inline; filename="Texas Watersheds.pdf"; filename*=UTF-8''Texas%20Watersheds.pdf`
+        })
+      );
+    });
+
+    it('shows the kept PDF on every later preview, without converting again', async () => {
+      await service.add(submission.guid, student, await upload('slides.ppt'));
+      toPdf.mockResolvedValue(Buffer.from('%PDF-1.7 made up'));
+
+      await service.preview(submission.guid, saved[0].guid, admin);
+      const again = await service.preview(submission.guid, saved[0].guid, admin);
+
+      expect(toPdf).toHaveBeenCalledTimes(1);
+      expect(again.getHeaders()).toEqual(expect.objectContaining({ type: 'application/pdf' }));
+    });
+
+    it('answers as before, 415 so the deck is downloaded, when the service cannot convert it', async () => {
       await service.add(submission.guid, student, await upload('slides.pptx'));
+      toPdf.mockResolvedValue(null);
 
       await expect(service.preview(submission.guid, saved[0].guid, admin)).rejects.toThrow(UnsupportedMediaTypeException);
+      expect(existsSync(join(appData, `${saved[0].path}.pdf`))).toBe(false);
+    });
+
+    it('removes the kept PDF with its deck', async () => {
+      await service.add(submission.guid, student, await upload('slides.pptx'));
+      toPdf.mockResolvedValue(Buffer.from('%PDF-1.7 made up'));
+      await service.preview(submission.guid, saved[0].guid, admin);
+      const kept = join(appData, `${saved[0].path}.pdf`);
+
+      await service.remove(submission.guid, saved[0].guid, admin);
+
+      expect(existsSync(kept)).toBe(false);
     });
   });
 
