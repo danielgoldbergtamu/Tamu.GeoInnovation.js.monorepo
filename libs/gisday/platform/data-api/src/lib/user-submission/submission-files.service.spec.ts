@@ -81,9 +81,14 @@ describe('SubmissionFilesService', () => {
     deleteAssetFiles = vi.fn(async (assets: Array<Asset>) => assets.forEach((a) => rmSync(join(appData, a.path))));
 
     toPdf = vi.fn(async () => null);
-    service = new SubmissionFilesService(submissionRepo as never, assetRepo as never, { deleteAssetFiles } as never, {
-      toPdf
-    } as never);
+    service = new SubmissionFilesService(
+      submissionRepo as never,
+      assetRepo as never,
+      { deleteAssetFiles } as never,
+      {
+        toPdf
+      } as never
+    );
   });
 
   afterEach(() => {

@@ -19,7 +19,11 @@ describe('the PowerPoint preview service', () => {
   }
 
   const deck = (name: string, body: string | Buffer = 'a made-up deck') =>
-    fetch(`${url}/convert?name=${encodeURIComponent(name)}`, { method: 'POST', body });
+    fetch(`${url}/convert?name=${encodeURIComponent(name)}`, {
+      method: 'POST',
+      // A Buffer is not a fetch body to TypeScript, though Node takes one.
+      body: typeof body === 'string' ? body : new Blob([Uint8Array.from(body)])
+    });
 
   beforeEach(() => {
     convert = vi.fn(async () => Buffer.from('%PDF-1.7 made up'));

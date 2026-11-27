@@ -23,7 +23,15 @@ export function sofficeConverter(timeoutMs: number, command = 'soffice'): Conver
       await writeFile(input, deck);
       await run(
         command,
-        ['--headless', `-env:UserInstallation=file://${join(folder, 'profile')}`, '--convert-to', 'pdf', '--outdir', folder, input],
+        [
+          '--headless',
+          `-env:UserInstallation=file://${join(folder, 'profile')}`,
+          '--convert-to',
+          'pdf',
+          '--outdir',
+          folder,
+          input
+        ],
         timeoutMs
       );
 
