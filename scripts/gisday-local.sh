@@ -9,6 +9,8 @@
 #                       from GISDAY_LOCAL_DIR, and map the app login
 #   install             npm ci into the shared node_modules volume (tamu-js-dev-nm)
 #   api                 build gisday-nest and start it (gisday-api, port 3333), with Redis
+#   preview             build the PowerPoint preview service and start it (gisday-pptx-preview), so the
+#                       review page previews decks (#3346); without it they are downloaded, as before
 #   web [--static] [--site <key>]
 #                       start the gisday-angular dev server (gisday-dev, port 4201); with --site, serve it
 #                       as that site on 4201 (gisday-site) and as txgisday.org on 4202. With --static, build
@@ -141,9 +143,22 @@ SQL
     docker run -d --name gisday-api -m 2g --network "$NET" -p 3333:3333 \
       --env-file "$LOCAL_DIR/gisday-api.local.env" "${dev_tenant[@]}" \
       -e TYPEORM_PASSWORD="$(sed -n 's/^GISDAY_APP_PASSWORD=//p' "$LOCAL_DIR/local-db.env")" \
+      -e PPTX_PREVIEW_URL=http://gisday-pptx-preview:8080 \
       -v "$REPO:/w" -v tamu-js-dev-nm:/w/node_modules -w /w \
       "$NODE_IMAGE" node dist/apps/gisday-nest/main.js
     echo "gisday-api started: docker logs -f gisday-api"
+    ;;
+
+  preview)
+    # The PowerPoint preview service (#3346): LibreOffice in its own image, as on the cluster, which the API asks for a
+    # deck's PDF by name on this network. The API runs without it, and a deck is then downloaded instead.
+    network
+    docker run --rm -m 8g -v "$REPO:/w" -v tamu-js-dev-nm:/w/node_modules -w /w -e NX_DAEMON=false \
+      "$NODE_IMAGE" node node_modules/nx/dist/bin/nx.js build gisday-pptx-preview --configuration=production
+    docker build -t gisday-pptx-preview:local "$REPO/dist/apps/gisday-pptx-preview"
+    docker rm -f gisday-pptx-preview >/dev/null 2>&1 || true
+    docker run -d --name gisday-pptx-preview -m 2g --network "$NET" gisday-pptx-preview:local
+    echo "gisday-pptx-preview started: docker logs -f gisday-pptx-preview"
     ;;
 
   web)
@@ -241,12 +256,12 @@ SQL
     ;;
 
   stop)
-    docker rm -f gisday-site gisday-dev gisday-api gisday-redis gisday-db 2>/dev/null || true
+    docker rm -f gisday-site gisday-dev gisday-api gisday-pptx-preview gisday-redis gisday-db 2>/dev/null || true
     echo "Stopped. The database is kept in volume gisday-db-data."
     ;;
 
   *)
-    sed -n '2,23p' "$0"
+    sed -n '2,25p' "$0"
     exit 2
     ;;
 esac

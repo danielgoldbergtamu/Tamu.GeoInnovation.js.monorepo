@@ -155,6 +155,31 @@ check "restore then runs the migrations on that database, as migrate run does" \
 check "restore runs the migrations after the restore, not before" \
   '[ "$(grep -n -- "RESTORE DATABASE" <<<"$restored" | cut -d: -f1)" -lt "$(grep -n -- "gisday-nest:migration-run" <<<"$restored" | cut -d: -f1)" ] 2>/dev/null'
 
+# Every docker call for a step, with a settings folder of its own holding the two files `api` needs.
+step_calls() {
+  local dir
+  dir="$(mktemp -d "$bin/local.XXXX")"
+  : >"$dir/local-db.env"
+  : >"$dir/gisday-api.local.env"
+  : >"$log"
+  (cd "$repo" && PATH="$bin:$PATH" DOCKER_LOG="$log" GISDAY_LOCAL_DIR="$dir" bash scripts/gisday-local.sh "$@" >/dev/null 2>&1)
+  cat "$log"
+}
+
+# The PowerPoint preview service (#3346): LibreOffice in an image of its own, which the API asks for a deck's PDF.
+preview="$(step_calls preview)"
+check "preview builds the service as production builds it" \
+  'grep -q -- "nx.js build gisday-pptx-preview --configuration=production" <<<"$preview"'
+check "preview builds its image from the build" \
+  'grep -q -- "build -t gisday-pptx-preview:local .*dist/apps/gisday-pptx-preview" <<<"$preview"'
+check "preview starts it on the stack's network, where the API reaches it by name" \
+  'grep -- "--name gisday-pptx-preview" <<<"$preview" | grep -q -- "--network gisday-local .*gisday-pptx-preview:local"'
+check "preview builds before it starts" \
+  '[ "$(grep -n -- "build -t gisday-pptx-preview" <<<"$preview" | cut -d: -f1)" -lt "$(grep -n -- "--name gisday-pptx-preview" <<<"$preview" | cut -d: -f1)" ] 2>/dev/null'
+check "the API is told where the preview service is" \
+  'step_calls api | grep -- "--name gisday-api" | grep -q -- "-e PPTX_PREVIEW_URL=http://gisday-pptx-preview:8080"'
+check "stop removes the preview service too" 'step_calls stop | grep -q "rm -f .*gisday-pptx-preview"'
+
 if [ "$failures" -gt 0 ]; then
   echo "$failures failed"
   exit 1

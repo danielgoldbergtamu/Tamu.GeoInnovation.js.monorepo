@@ -51,6 +51,7 @@ scripts/gisday-local.sh install                 # npm ci into tamu-js-dev-nm, ab
 scripts/gisday-local.sh db                      # SQL Server, waits until it answers
 scripts/gisday-local.sh restore                 # the repository's scrubbed copy, a few seconds
 scripts/gisday-local.sh api                     # builds gisday-nest (under a minute), starts it and Redis
+scripts/gisday-local.sh preview                 # optional: the PowerPoint preview service; its image is about 1.8 GB
 scripts/gisday-local.sh web                     # first compile takes several minutes
 ```
 
@@ -181,6 +182,11 @@ tenant's from `environment.local.ts` instead.
   proxy at <http://localhost:4201/api/seasons/active> all answer 200; the proxy's path was
   `/___ANGULAR_API_URL___/` until #2088).
 - Sign-in, with an account in the development Auth0 tenant (see [Signing in](#signing-in)).
+- **Previewing a PowerPoint** on a submission's review page, once `preview` has started the PowerPoint preview service
+  (#3346). The API finds it at `http://gisday-pptx-preview:8080` on the stack's network, converts a deck the first time
+  it is previewed, and keeps the PDF beside the deck under `APP_DATA`. Without the service, Preview downloads the deck
+  and says so, as every PowerPoint did before. `apps/gisday-pptx-preview/src/fixtures/made-up-deck.pptx` is a deck with
+  nothing real in it, to attach and try.
 
 What does not, yet:
 
